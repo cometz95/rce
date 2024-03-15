@@ -12,22 +12,22 @@ dt          = 20.E8
 
 <output1>
 file_type   = hst       # History data dump
-dt          = 1.E5      # time increment between outputs
+dt          = 1.E4      # time increment between outputs
 
 <output2>
 file_type   = pnetcdf    # Binary data dump
 variable    = prim      # variables to be output
-dt          = 1.E4      # time increment between outputs
+dt          = 1.E3      # time increment between outputs
 
 <output3>
 file_type   = pnetcdf
 variable    = uov
-dt          = 1.E4
+dt          = 1.E3
 
 <output4>
 file_type   = pnetcdf
 variable    = diag
-dt          = 1.E4
+dt          = 1.E3
 
 #<output5>
 #file_type   = pnetcdf
@@ -149,6 +149,8 @@ distance_au   = 1.523
 qH2O.ppmv     = 3.
 qH2S.ppmv     = 983.
 qSO2.ppmv     = 6826.
-qCO2.ppmv     = 982188.
+qCO2.ppmv     = 0.
+#qCO2.ppmv     = 98218.
+#qCO2.ppmv     = 982.
 
 diagnostics   = div, curl, b, mean, div_h, tempa, presa, hydroflux
