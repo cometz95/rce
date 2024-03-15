@@ -11,7 +11,7 @@ set_if_empty(NUMBER_GHOST_CELLS 3)
 
 # canoe configure
 set(NVAPOR 4)
-set(NCLOUD 0)
+set(NCLOUD 8)
 # set(NPHASE_LEGACY 2)
 set(NETCDF ON)
 set(PNETCDF ON)
