@@ -185,7 +185,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
       // half a grid to cell center
       pthermo->Extrapolate(&air, pcoord->dx1f(is) / 2.,
-                           Thermodynamics::Method::ReversibleAdiabat, grav);
+                           Thermodynamics::Method::PseudoAdiabat, grav);
 
       int i = is;
       for (; i <= ie; ++i) {
