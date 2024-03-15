@@ -28,7 +28,7 @@
 #include <harp/radiation.hpp>
 
 // special includes
-#include <special/giants_enroll_vapor_functions_v1.hpp>
+#include <special/amars_enroll_vapor_functions_v1.hpp>
 
 Real grav, P0, T0, Tmin;
 int iH2O, iCO2, iH2S, iSO2;

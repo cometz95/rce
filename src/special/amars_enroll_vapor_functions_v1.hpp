@@ -10,8 +10,10 @@
 #include <snap/thermodynamics/thermodynamics.hpp>
 #include <snap/thermodynamics/vapors/ammonia_vapors.hpp>
 #include <snap/thermodynamics/vapors/ammonium_hydrosulfide_vapors.hpp>
+#include <snap/thermodynamics/vapors/carbon_dioxide_vapors.hpp>
 #include <snap/thermodynamics/vapors/hydrogen_sulfide_vapors.hpp>
 #include <snap/thermodynamics/vapors/methane_vapors.hpp>
+#include <snap/thermodynamics/vapors/sulfur_dioxide_vapors.hpp>
 #include <snap/thermodynamics/vapors/water_vapors.hpp>
 
 // water svp

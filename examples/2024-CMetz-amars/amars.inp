@@ -12,22 +12,22 @@ dt          = 20.E8
 
 <output1>
 file_type   = hst       # History data dump
-dt          = 1.E6      # time increment between outputs
+dt          = 1.E5      # time increment between outputs
 
 <output2>
 file_type   = pnetcdf    # Binary data dump
 variable    = prim      # variables to be output
-dt          = 1.E5      # time increment between outputs
+dt          = 1.E4      # time increment between outputs
 
 <output3>
 file_type   = pnetcdf
 variable    = uov
-dt          = 1.E5
+dt          = 1.E4
 
 <output4>
 file_type   = pnetcdf
-variable    = rad
-dt          = 1.E5
+variable    = diag
+dt          = 1.E4
 
 #<output5>
 #file_type   = pnetcdf
@@ -42,15 +42,15 @@ xorder      = 5             # horizontal reconstruction order
 integrator  = rk3           # integration method
 
 <mesh>
-nx1         = 100           # Number of zones in X1-direction
+nx1         = 64           # Number of zones in X1-direction
 x1min       = 0.            # minimum value of X1
-x1max       = 1E5         # maximum value of X1
+x1max       = 16.E3         # maximum value of X1
 ix1_bc      = reflecting    # inner-X1 boundary flag
 ox1_bc      = reflecting    # outer-X1 boundary flag
 
-nx2         = 1            # Number of zones in X2-direction
-x2min       = -0.5            # minimum value of X2
-x2max       = 0.5        # maximum value of X2
+nx2         = 128            # Number of zones in X2-direction
+x2min       = 0            # minimum value of X2
+x2max       = 64.E3        # maximum value of X2
 ix2_bc      = periodic      # Inner-X2 boundary condition flag
 ox2_bc      = periodic      # Outer-X2 boundary condition flag
 
@@ -61,32 +61,24 @@ ix3_bc      = periodic    # Inner-X3 boundary condition flag
 ox3_bc      = periodic    # Outer-X3 boundary condition flag
 
 <meshblock>
-nx1         = 100
-nx2         = 1
+nx1         = 64
+nx2         = 32
 nx3         = 1
 
 <hydro>
 gamma           = 1.66    # gamma = C_p/C_v general, for Argon gamma = 1.6597
 grav_acc1       = -3.71
 #OmegaZ        = 2.424E-5
-implicit_flag = 1
+implicit_flag 	= 1
 
-<physics>
-packages = fix_bot_temperature
-fix_bot_temperature.tau = 50.
-bot_temperature         = -1.
+<forcing>
+packages = bot_heating, top_cooling
+bot_heating.flux = 2.
+top_cooling.flux = -2.
 
-#packages               = fix_bot_temperature, top_sponge, bot_sponge
-#top_sponge.tau         = 1.E4
-#top_sponge.width       = 5.E5
-#bot_sponge.tau         = 1.E4
-#bot_sponge.width       = 5.E5
-#fix_bot_temperature.tau = 100.
-#bot_temperature = -1.
-#
 <species>
 vapor = H2O, H2S, SO2, CO2
-cloud = H2O(c), H2O(p)
+cloud = H2O(c), H2O(p), H2S(c), H2S(p), SO2(c), SO2(p), CO2(c), CO2(p)
 
 <chemistry>
 microphysics_config = amars.yaml
@@ -122,8 +114,8 @@ rcp4        = 1.62    3.54    3.54
 Ttriple4    = 216.58
 Ptriple4    = 518500
 
-sa.relax    = 0.9
-sa.max_iter = 10
+sa.relax    = 1.0
+sa.max_iter = 20
 sa.ftol     = 0.1
 
 <astronomy>
@@ -142,15 +134,15 @@ HJ.equinox    = 0.
 
 #Sun.spec_file = ../src/radiation/spectra/sun.spec
 
-<radiation>
-dt            = 40.
-radiation_config = amars.yaml
-nstr          = 4
+#<radiation>
+#dt            = 40.
+#radiation_config = amars.yaml
+#nstr          = 4
 
 <problem>
-P0            = 5.E5
+P0            = 0.5E5
 T0            = 2.E2
-Tmin          = 50.
+Tmin          = 80.
 qRelaxT       = 1.E-4
 distance_au   = 1.523
 
@@ -159,4 +151,4 @@ qH2S.ppmv     = 983.
 qSO2.ppmv     = 6826.
 qCO2.ppmv     = 982188.
 
-diagnostics   = c_avg radflux
+diagnostics   = div, curl, b, mean, div_h, tempa, presa, hydroflux
