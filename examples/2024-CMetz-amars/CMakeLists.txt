@@ -1,6 +1,6 @@
 
 # 1. Compile amars
-if (${NVAPOR} EQUAL 4 AND ${NCLOUD} EQUAL 8 AND ${NPHASE_LEGACY} EQUAL 3)
+if (${NVAPOR} EQUAL 1 AND ${NCLOUD} EQUAL 2 AND ${NPHASE_LEGACY} EQUAL 3)
   setup_problem(amars)
 endif()
 
