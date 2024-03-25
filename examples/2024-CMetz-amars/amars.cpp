@@ -104,8 +104,8 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   // index
   auto pindex = IndexMap::GetInstance();
   // iH2O = pindex->GetVaporId("H2O");
-  // iCO2 = pindex->GetVaporId("CO2");
-  // iH2S = pindex->GetVaporId("H2S");
+  //  iCO2 = pindex->GetVaporId("CO2");
+  //  iH2S = pindex->GetVaporId("H2S");
   iSO2 = pindex->GetVaporId("SO2");
   EnrollUserExplicitSourceFunction(Forcing);
 }
@@ -141,8 +141,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   Real Ts = T0 - grav / cp * x1min;
   Real Ps = P0 * pow(Ts / T0, cp / Rd);
   // Real xH2O = pin->GetReal("problem", "qH2O.ppmv") / 1.E6;
-  // Real xCO2 = pin->GetReal("problem", "qCO2.ppmv") / 1.E6;
-  // Real xH2S = pin->GetReal("problem", "qH2S.ppmv") / 1.E6;
+  //  Real xCO2 = pin->GetReal("problem", "qCO2.ppmv") / 1.E6;
+  //  Real xH2S = pin->GetReal("problem", "qH2S.ppmv") / 1.E6;
   Real xSO2 = pin->GetReal("problem", "qSO2.ppmv") / 1.E6;
 
   while (iter++ < max_iter) {
@@ -178,8 +178,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     for (int j = js; j <= je; ++j) {
       air.SetZero();
       // air.w[iH2O] = xH2O;
-      // air.w[iCO2] = xCO2;
-      // air.w[iH2S] = xH2S;
+      //  air.w[iCO2] = xCO2;
+      //  air.w[iH2S] = xH2S;
       air.w[iSO2] = xSO2;
       air.w[IPR] = Ps;
       air.w[IDN] = Ts;
