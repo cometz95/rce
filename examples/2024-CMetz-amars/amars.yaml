@@ -1,31 +1,113 @@
 opacity-sources:
   - name: H2O
     class: Hitran
+    data: amars-kcoeff.nc
     dependent-species: [vapor.H2O]
+
+  - name: H2S
+    class: Hitran
+    data: amars-kcoeff.nc
+    dependent-species: [vapor.H2S]
+
+  - name: SO2
+    class: Hitran
+    data: amars-kcoeff.nc
+    dependent-species: [vapor.SO2]
+
+  - name: CO2
+    class: Hitran
+    data: amars-kcoeff.nc
+    dependent-species: [vapor.CO2]
 
   - name: cloud
     class: SimpleCloud
     dependent-species: [cloud.H2O(c), cloud.H2O(p)]
     parameters: {qext: 1., ssa: 0.01, asymf: 0.01}
 
-  - name: H2-vis
-    class: FreedmanSimple2
-    parameters: {scale: 1.}
+bands: [B1,B2,B3,B4,B5,B6,B7,B8]
+#bands: [B0]
 
-  - name: H2-ir
-    class: FreedmanMean2
-    parameters: {met: 1.7, scale: 1.}
-
-bands: [ir, vis]
-
-ir:
+B0:
   units: cm-1
   grid-type: regular
-  wavenumber-range: [100., 10000.]
-  num-bins: 1
-  opacity: [H2-ir]
+  wavenumber-range: [1., 2000.]
+  #num-bins: 2000.
+  resolution: 0.1
+  opacity: [H2O, H2S, SO2, CO2]
   rt-solver: Disort
-  flags: [broad_band, thermal_emission]
+  flags: [thermal_emission]
+
+B1:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [1., 100.]
+  resolution: 0.1
+  opacity: [H2O, H2S, SO2, CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
+B2:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [100., 150.]
+  resolution: 0.1
+  opacity: [H2O, H2S, SO2, CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
+B3:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [150., 400.]
+  resolution: 0.1
+  opacity: [H2O, H2S, SO2, CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
+B4:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [400., 500.]
+  resolution: 0.1
+  opacity: [H2O, H2S, SO2, CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
+B5:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [500., 650.]
+  resolution: 0.1
+  opacity: [H2O, H2S, SO2, CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
+B6:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [650., 850.]
+  resolution: 0.1
+  opacity: [H2O, H2S, SO2, CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
+B7:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [850., 1000.]
+  resolution: 0.1
+  opacity: [H2O, H2S, SO2, CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
+B8:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [1000., 2000.]
+  resolution: 0.1
+  opacity: [H2O, H2S, SO2, CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
 
 vis:
   units: cm-1
