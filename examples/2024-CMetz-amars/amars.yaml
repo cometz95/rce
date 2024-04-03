@@ -24,8 +24,8 @@ opacity-sources:
     dependent-species: [cloud.H2O(c), cloud.H2O(p)]
     parameters: {qext: 1., ssa: 0.01, asymf: 0.01}
 
-bands: [B1,B2,B3,B4,B5,B6,B7,B8]
-#bands: [B0]
+#bands: [B1,B2,B3,B4,B5,B6,B7,B8]
+bands: [B1, B2]
 
 B0:
   units: cm-1
@@ -42,7 +42,7 @@ B1:
   grid-type: regular
   wavenumber-range: [1., 100.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2, CO2]
+  opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
 
@@ -51,7 +51,7 @@ B2:
   grid-type: regular
   wavenumber-range: [100., 150.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2, CO2]
+  opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
 

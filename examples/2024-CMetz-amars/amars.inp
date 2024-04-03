@@ -29,10 +29,10 @@ file_type   = pnetcdf
 variable    = diag
 dt          = 1.E4
 
-#<output5>
-#file_type   = pnetcdf
-#variable    = diag
-#dt          = 1.E5
+<output5>
+file_type   = pnetcdf
+variable    = rad
+dt          = 1.E4
 
 <time>
 cfl_number  = 0.9           # The Courant, Friedrichs, & Lewy (CFL) Number
@@ -140,10 +140,10 @@ HJ.equinox    = 0.
 
 #Sun.spec_file = ../src/radiation/spectra/sun.spec
 
-#<radiation>
-#dt            = 40.
-#radiation_config = amars.yaml
-#nstr          = 4
+<radiation>
+dt            = 40.
+radiation_config = amars.yaml
+nstr          = 4
 
 <problem>
 P0            = 0.5E5
