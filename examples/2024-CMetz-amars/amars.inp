@@ -142,7 +142,7 @@ HJ.equinox    = 0.
 
 <radiation>
 dt            = 40.
-radiation_config = amars.yaml
+#radiation_config = amars.yaml
 nstr          = 4
 
 <problem>
