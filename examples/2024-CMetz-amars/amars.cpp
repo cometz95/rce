@@ -54,7 +54,7 @@ void writeToFile(double value1, double value2, double value3, double value4) {
 }
 
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
-  AllocateUserOutputVariables(4 + NVAPOR);
+  AllocateUserOutputVariables(5 + NVAPOR);
   SetUserOutputVariableName(0, "temp");
   SetUserOutputVariableName(1, "theta");
   SetUserOutputVariableName(2, "thetav");
@@ -63,12 +63,14 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
     std::string name = "rh" + std::to_string(n);
     SetUserOutputVariableName(3 + n, name.c_str());
   }
-  AllocateRealUserMeshBlockDataField(3);
-  ruser_meshblock_data[0].NewAthenaArray(je - 2);
-  ruser_meshblock_data[1].NewAthenaArray(je - 2);
-  ruser_meshblock_data[2].NewAthenaArray(je - 2);
+  SetUserOutputVariableName(5 + NVAPOR - 1, "btemp");
 
-  for (int i = 0; i < je - 2; ++i) {
+  AllocateRealUserMeshBlockDataField(3);
+  ruser_meshblock_data[0].NewAthenaArray(ncells2);
+  ruser_meshblock_data[1].NewAthenaArray(ncells2);
+  ruser_meshblock_data[2].NewAthenaArray(ncells2);
+
+  for (int i = 0; i <= je; ++i) {
     ruser_meshblock_data[0](i) = 0;
     ruser_meshblock_data[1](i) = 280;
     ruser_meshblock_data[2](i) = 290;
@@ -94,7 +96,7 @@ void MeshBlock::UserWorkInLoop() {
   double time = this->pmy_mesh->time;
   double dt = this->pmy_mesh->dt;
 
-  for (int i = 0; i < je - 2; ++i) {
+  for (int i = 0; i <= je; ++i) {
     swin(i) = s0 * (1 + std::sin(omega * time));
     double dTa = ((Epsilon_a * Sigma * (-2 * pow(ta(i), 4) + pow(ts(i), 4))) /
                   (cpAtm * Delta_z * Rho)) *
@@ -126,6 +128,7 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
         for (int n = 1; n <= NVAPOR; ++n)
           user_out_var(3 + n, k, j, i) =
               pthermo->RelativeHumidity(this, n, k, j, i);
+        user_out_var(5 + NVAPOR - 1, k, j, i) = ruser_meshblock_data[1](j);
       }
 }
 
