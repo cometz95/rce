@@ -28,10 +28,14 @@ def create_atmosphere(nlyr: int) -> dict:
     atm["TEM"] = data["temp"][0, :, 0, 0]
 
     # mole fraction
-    atm["H2O"] = data["vapor1"][0, :, 0, 0] / 18.0 * 2.2
+    atm["H2O"] = data["vapor1"][0, :, 0, 0] / 18.0 * 44
 
     # mole fraction
-    atm["H2S"] = data["vapor2"][0, :, 0, 0] / 17.0 * 2.2
+    atm["H2S"] = data["vapor2"][0, :, 0, 0] / 34.0 * 40
+
+    atm["SO2"] = data["vapor3"][0, :, 0, 0] / 64 * 40
+
+    atm["CO2"] = data["vapor4"][0, :, 0, 0] / 44 * 40
 
     return atm
 

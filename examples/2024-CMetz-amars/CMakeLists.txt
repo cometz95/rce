@@ -1,6 +1,8 @@
 
 # 1. Compile amars
-setup_problem(amars)
+if (${NVAPOR} EQUAL 3 AND ${NCLOUD} EQUAL 6 AND ${NPHASE_LEGACY} EQUAL 3)
+  setup_problem(amars)
+endif()
 
 # 2. Copy input files to run directory
 file(GLOB inputs *.inp *.yaml *.py)

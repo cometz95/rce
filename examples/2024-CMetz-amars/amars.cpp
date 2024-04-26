@@ -1,3 +1,5 @@
+#include <fstream>
+
 // athena
 #include <athena/athena.hpp>
 #include <athena/athena_arrays.hpp>
@@ -31,7 +33,25 @@
 #include <special/amars_enroll_vapor_functions_v1.hpp>
 
 Real grav, P0, T0, Tmin;
-int iH2O, iCO2, iH2S, iSO2;
+// int iH2O, iCO2, iH2S, iSO2;
+int iH2O, iH2S, iSO2;
+
+void writeToFile(double value1, double value2, double value3, double value4) {
+  // Open the file in append mode. If the file does not exist, it will be
+  // created.
+  std::ofstream file("output.txt", std::ios::app);
+
+  // Check if the file is open
+  if (file.is_open()) {
+    // Write the values to the file
+    file << value1 << " " << value2 << " " << value3 << " " << value4 << "\n";
+
+    // Close the file
+    file.close();
+  } else {
+    std::cout << "Unable to open file";
+  }
+}
 
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   AllocateUserOutputVariables(4 + NVAPOR);
@@ -42,6 +62,50 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   for (int n = 1; n <= NVAPOR; ++n) {
     std::string name = "rh" + std::to_string(n);
     SetUserOutputVariableName(3 + n, name.c_str());
+  }
+  AllocateRealUserMeshBlockDataField(3);
+  ruser_meshblock_data[0].NewAthenaArray(je - 2);
+  ruser_meshblock_data[1].NewAthenaArray(je - 2);
+  ruser_meshblock_data[2].NewAthenaArray(je - 2);
+
+  for (int i = 0; i < je - 2; ++i) {
+    ruser_meshblock_data[0](i) = 0;
+    ruser_meshblock_data[1](i) = 280;
+    ruser_meshblock_data[2](i) = 290;
+  }
+}
+
+void MeshBlock::UserWorkInLoop() {
+  AthenaArray<Real> &swin = ruser_meshblock_data[0];
+  AthenaArray<Real> &ts = ruser_meshblock_data[1];
+  AthenaArray<Real> &ta = ruser_meshblock_data[2];
+
+  double omega = (2 * 3.14159) / 86400;
+  double s0 = 1360;
+  double alpha_s = 0.3;
+  double alpha_a = 0.5;
+  double Epsilon_a = 0.5;
+  double Epsilon_s = 1;
+  double Rho = 1.22;
+  double cpAtm = 1005;
+  double Sigma = 5.67e-8;
+  double Delta_z = 50;
+  double cSurf = 50000;
+  double time = this->pmy_mesh->time;
+  double dt = this->pmy_mesh->dt;
+
+  for (int i = 0; i < je - 2; ++i) {
+    swin(i) = s0 * (1 + std::sin(omega * time));
+    double dTa = ((Epsilon_a * Sigma * (-2 * pow(ta(i), 4) + pow(ts(i), 4))) /
+                  (cpAtm * Delta_z * Rho)) *
+                 dt;
+    double dTs = ((swin(i) * (1 - alpha_a) * (1 - alpha_s) +
+                   Epsilon_s * Sigma * (pow(ta(i), 4) - pow(ts(i), 4))) /
+                  cSurf) *
+                 dt;
+    ta(i) = ta(i) + dTa;
+    ts(i) = ts(i) + dTs;
+    writeToFile(time, swin(i), ta(i), ts(i));
   }
 }
 
@@ -103,7 +167,7 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   // index
   auto pindex = IndexMap::GetInstance();
   iH2O = pindex->GetVaporId("H2O");
-  iCO2 = pindex->GetVaporId("CO2");
+  // iCO2 = pindex->GetVaporId("CO2");
   iH2S = pindex->GetVaporId("H2S");
   iSO2 = pindex->GetVaporId("SO2");
   EnrollUserExplicitSourceFunction(Forcing);
@@ -140,14 +204,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   Real Ts = T0 - grav / cp * x1min;
   Real Ps = P0 * pow(Ts / T0, cp / Rd);
   Real xH2O = pin->GetReal("problem", "qH2O.ppmv") / 1.E6;
-  Real xCO2 = pin->GetReal("problem", "qCO2.ppmv") / 1.E6;
+  // Real xCO2 = pin->GetReal("problem", "qCO2.ppmv") / 1.E6;
   Real xH2S = pin->GetReal("problem", "qH2S.ppmv") / 1.E6;
   Real xSO2 = pin->GetReal("problem", "qSO2.ppmv") / 1.E6;
 
   while (iter++ < max_iter) {
     // read in vapors
     air.w[iH2O] = xH2O;
-    air.w[iCO2] = xCO2;
+    // air.w[iCO2] = xCO2;
     air.w[iH2S] = xH2S;
     air.w[iSO2] = xSO2;
     air.w[IPR] = Ps;
@@ -176,7 +240,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     for (int j = js; j <= je; ++j) {
       air.SetZero();
       air.w[iH2O] = xH2O;
-      air.w[iCO2] = xCO2;
+      // air.w[iCO2] = xCO2;
       air.w[iH2S] = xH2S;
       air.w[iSO2] = xSO2;
       air.w[IPR] = Ps;

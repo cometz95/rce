@@ -43,11 +43,11 @@ def create_rfm_atmosphere(nlyr: int) -> dict:
 
 if __name__ == "__main__":
     hitran_file = find_resource("HITRAN2020.par")
-    def_species(vapors=["H2O", "H2S", "SO2", "CO2"])
+    def_species(vapors=["H2O", "H2S", "SO2"])
 
     config = load_configure("amars.yaml")
 
-    for i in [0, 1, 2, 3, 4, 5, 6, 7]:
+    for i in [8]:
         band = radiation_band(str(config["bands"][i]), config)
 
         nspec = band.get_num_specgrids()

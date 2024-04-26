@@ -17,25 +17,35 @@ opacity-sources:
   - name: CO2
     class: Hitran
     data: amars-kcoeff.nc
-    dependent-species: [vapor.CO2]
+    dependent-species: [vapor.dry]
 
   - name: cloud
     class: SimpleCloud
     dependent-species: [cloud.H2O(c), cloud.H2O(p)]
     parameters: {qext: 1., ssa: 0.01, asymf: 0.01}
 
-#bands: [B1,B2,B3,B4,B5,B6,B7,B8]
-bands: [B1, B2]
+bands: [B1, B2, B3, B4, B5, B6, B7, B8, B9]
+#bands: [B0]
 
 B0:
   units: cm-1
   grid-type: regular
-  wavenumber-range: [1., 2000.]
+  wavenumber-range: [508., 512.]
   #num-bins: 2000.
   resolution: 0.1
-  opacity: [H2O, H2S, SO2, CO2]
+  opacity: [SO2]
   rt-solver: Disort
   flags: [thermal_emission]
+
+B9:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [4760., 5260.]
+  resolution: 0.1
+  opacity: [CO2,H2O,SO2,H2S]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
 
 B1:
   units: cm-1
@@ -60,7 +70,7 @@ B3:
   grid-type: regular
   wavenumber-range: [150., 400.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2, CO2]
+  opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
 
@@ -69,7 +79,7 @@ B4:
   grid-type: regular
   wavenumber-range: [400., 500.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2, CO2]
+  opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
 
@@ -78,7 +88,7 @@ B5:
   grid-type: regular
   wavenumber-range: [500., 650.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2, CO2]
+  opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
 
@@ -87,7 +97,7 @@ B6:
   grid-type: regular
   wavenumber-range: [650., 850.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2, CO2]
+  opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
 
@@ -96,7 +106,7 @@ B7:
   grid-type: regular
   wavenumber-range: [850., 1000.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2, CO2]
+  opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
 
@@ -105,9 +115,10 @@ B8:
   grid-type: regular
   wavenumber-range: [1000., 2000.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2, CO2]
+  opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
+  albedo: 0
 
 vis:
   units: cm-1
@@ -139,14 +150,17 @@ Disort-flags:
 
 thermodynamics:
   non-condensable:
-    Rd: 207.85
-    gammad_ref: 1.66
+    Rd: 189.
+    gammad_ref: 1.3
+    #Rd: 207.85
+    #gammad_ref: 1.66
+
 
 microphysics:
   - H2O-system
   - H2S-system
   - SO2-system
-  - CO2-system
+    #- CO2-system
 
 H2O-system:
   scheme: Kessler94

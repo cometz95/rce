@@ -29,14 +29,14 @@ file_type   = pnetcdf
 variable    = diag
 dt          = 1.E4
 
-<output5>
-file_type   = pnetcdf
-variable    = rad
-dt          = 1.E4
+#<output5>
+#file_type   = pnetcdf
+#variable    = rad
+#dt          = 1.E4
 
 <time>
 cfl_number  = 0.9           # The Courant, Friedrichs, & Lewy (CFL) Number
-nlim        = 1            # cycle limit
+nlim        = -1            # cycle limit
 tlim        = 1.E7         # time limit
 xorder      = 5             # horizontal reconstruction order
 integrator  = rk3           # integration method
@@ -77,14 +77,18 @@ bot_heating.flux = 2.
 top_cooling.flux = -2.
 
 <species>
-vapor = H2O, H2S, SO2, CO2
-cloud = H2O(c), H2S(c), SO2(c), CO2(c), H2O(p), H2S(p), SO2(p), CO2(p)
+#vapor = H2O, H2S, SO2, CO2
+#cloud = H2O(c), H2S(c), SO2(c), CO2(c), H2O(p), H2S(p), SO2(p), CO2(p)
+
+vapor = H2O, H2S, SO2
+cloud = H2O(c), H2S(c), SO2(c), H2O(p), H2S(p), SO2(p)
 
 <chemistry>
 microphysics_config = amars.yaml
 
 <thermodynamics>
-Rd          = 207.85. #dry is 1% Argon u = 40g/mol
+#Rd          = 207.85. #dry is 1% Argon u = 40g/mol
+Rd          = 189.
 
 #H2O
 eps1        = 0.45    0.45    0.45
@@ -108,17 +112,11 @@ Ttriple3    = 197.64
 Ptriple3    = 1670
 
 #CO2
-eps4        = 1.1     1.1     1.1
-beta4       = 0.      10.51   10.51
-rcp4        = 1.62    3.54    3.54
-Ttriple4    = 216.58
-Ptriple4    = 518500
-
-#eps4 = 0.45 0.45 0.45
-#beta4 = 0. 17.9 17.9
-#rcp4 = 8.05 8.05 8.05
-#Ttriple4 = 273.
-#Ptriple4 = 611.7
+#eps4        = 1.1     1.1     1.1
+#beta4       = 0.      10.51   10.51
+#rcp4        = 1.62    3.54    3.54
+#Ttriple4    = 216.58
+#Ptriple4    = 518500
 
 sa.relax    = 1.0
 sa.max_iter = 20
@@ -140,22 +138,22 @@ HJ.equinox    = 0.
 
 #Sun.spec_file = ../src/radiation/spectra/sun.spec
 
-<radiation>
-dt            = 40.
+#<radiation>
+#dt            = 40.
 #radiation_config = amars.yaml
-nstr          = 4
+#nstr          = 4
 
 <problem>
 P0            = 0.5E5
 T0            = 200.
-Tmin          = 178.
+Tmin          = 200.
+#Tmin          = 178.
 qRelaxT       = 1.E-4
 distance_au   = 1.523
 
 qH2O.ppmv     = 5.
 qH2S.ppmv     = 1000.
 qSO2.ppmv     = 10000.
-qCO2.ppmv     = 978995.
-#qCO2.ppmv     = 0.001
+#qCO2.ppmv     = 978995.
 
 diagnostics   = div, curl, b, mean, div_h, tempa, presa, hydroflux
