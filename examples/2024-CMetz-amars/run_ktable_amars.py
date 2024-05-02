@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     config = load_configure("amars.yaml")
 
-    for i in [8]:
+    for i in range(8):
         band = radiation_band(str(config["bands"][i]), config)
 
         nspec = band.get_num_specgrids()

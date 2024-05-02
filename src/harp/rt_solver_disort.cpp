@@ -229,6 +229,9 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
       dir_axis_[ds_.numu + i] = uphi[i];
     }
   }
+  // ds_.bc.btemp = pmb->prad->pband->psolver->btemp;
+  AthenaArray<Real> &ts = pmb->ruser_meshblock_data[1];
+  ds_.bc.btemp = ts(j);
 }
 
 void RadiationBand::RTSolverDisort::CalBandFlux(MeshBlock const *pmb, int k,
