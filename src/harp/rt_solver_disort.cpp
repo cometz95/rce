@@ -61,7 +61,7 @@ RadiationBand::RTSolverDisort::RTSolverDisort(RadiationBand *pmy_band,
   if (pmy_band->HasPar("albedo")) {
     ds_.bc.albedo = pmy_band->GetPar<Real>("albedo");
   } else {
-    ds_.bc.albedo = 1.;
+    ds_.bc.albedo = 0.;
   }
 
   if (pmy_band->HasPar("ttemp")) {

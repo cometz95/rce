@@ -55,7 +55,7 @@ B1:
   opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0
+  albedo: 0.01
 
 B2:
   units: cm-1
@@ -65,7 +65,7 @@ B2:
   opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0
+  albedo: 0.01
 
 B3:
   units: cm-1
@@ -75,7 +75,7 @@ B3:
   opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0
+  albedo: 0.01
 
 B4:
   units: cm-1
@@ -85,7 +85,7 @@ B4:
   opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0
+  albedo: 0.01
 
 B5:
   units: cm-1
@@ -95,7 +95,7 @@ B5:
   opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0
+  albedo: 0.01
 
 B6:
   units: cm-1
@@ -105,7 +105,7 @@ B6:
   opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0
+  albedo: 0.01
 
 B7:
   units: cm-1
@@ -115,7 +115,7 @@ B7:
   opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0
+  albedo: 0.01
 
 B8:
   units: cm-1
@@ -125,7 +125,7 @@ B8:
   opacity: [H2O, H2S, SO2]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0
+  albedo: 0.01
 
 vis:
   units: cm-1

@@ -10,6 +10,7 @@
 #include <athena/hydro/hydro.hpp>
 #include <athena/mesh/mesh.hpp>
 #include <athena/parameter_input.hpp>
+#include <athena/scalars/scalars.hpp>
 
 // application
 #include <application/application.hpp>
@@ -35,9 +36,10 @@
 Real grav, P0, T0, Tmin;
 // int iH2O, iCO2, iH2S, iSO2;
 int iH2O, iH2S, iSO2;
+int nVars = 9;
 
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
-  AllocateUserOutputVariables(5 + NVAPOR);
+  AllocateUserOutputVariables(nVars + NVAPOR);
   SetUserOutputVariableName(0, "temp");
   SetUserOutputVariableName(1, "theta");
   SetUserOutputVariableName(2, "thetav");
@@ -46,26 +48,37 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
     std::string name = "rh" + std::to_string(n);
     SetUserOutputVariableName(3 + n, name.c_str());
   }
-  SetUserOutputVariableName(5 + NVAPOR - 1, "btemp");
+  SetUserOutputVariableName(4 + NVAPOR, "btemp");
+  SetUserOutputVariableName(4 + NVAPOR + 1, "accumPrecipH2O");
+  SetUserOutputVariableName(4 + NVAPOR + 2, "accumPrecipH2S");
+  SetUserOutputVariableName(4 + NVAPOR + 3, "accumPrecipSO2");
 
-  AllocateRealUserMeshBlockDataField(3);
+  AllocateRealUserMeshBlockDataField(5);
   ruser_meshblock_data[0].NewAthenaArray(ncells2);
   ruser_meshblock_data[1].NewAthenaArray(ncells2);
   ruser_meshblock_data[2].NewAthenaArray(ncells2);
+  ruser_meshblock_data[3].NewAthenaArray(ncells2);
+  ruser_meshblock_data[4].NewAthenaArray(ncells2);
 
-  for (int i = 0; i <= je; ++i) {
-    ruser_meshblock_data[0](i) = 0;
-    ruser_meshblock_data[1](i) = 230;
-    ruser_meshblock_data[2](i) = 230;
+  for (int j = 0; j <= je; ++j) {
+    ruser_meshblock_data[0](j) = 0;
+    ruser_meshblock_data[1](j) = 230;
+    ruser_meshblock_data[2](j) = 0;
+    ruser_meshblock_data[3](j) = 0;
+    ruser_meshblock_data[4](j) = 0;
   }
 }
 
 void MeshBlock::UserWorkInLoop() {
   AthenaArray<Real> &swin = ruser_meshblock_data[0];
   AthenaArray<Real> &ts = ruser_meshblock_data[1];
-  AthenaArray<Real> &ta = ruser_meshblock_data[2];
+  // AthenaArray<Real> &ta = ruser_meshblock_data[2];
 
-  double omega = (2 * 3.14159) / 86400;
+  AthenaArray<Real> &accumPrecipH2O = ruser_meshblock_data[2];
+  AthenaArray<Real> &accumPrecipH2S = ruser_meshblock_data[3];
+  AthenaArray<Real> &accumPrecipSO2 = ruser_meshblock_data[4];
+
+  double omega = (2 * 3.14159) / 88560;
   double s0 = 1360 * 0.7 * pow(1 / 1.523, 2);
   double alpha_s = 0.3;
   double alpha_a = 0.5;
@@ -75,7 +88,7 @@ void MeshBlock::UserWorkInLoop() {
   double cpAtm = 1005;
   double Sigma = Constants::stefanBoltzmann;
   double Delta_z = 50;
-  double cSurf = 50000;
+  double cSurf = 100000;
   double time = this->pmy_mesh->time;
   double dt = this->pmy_mesh->dt;
 
@@ -84,22 +97,61 @@ void MeshBlock::UserWorkInLoop() {
   //   tot_fluxd += this->prad->
   // }
 
-  for (int i = 0; i <= je; ++i) {
-    swin(i) = s0 * (1 + std::sin(omega * time));
-    double dTa = ((Epsilon_a * Sigma * (-2 * pow(ta(i), 4) + pow(ts(i), 4))) /
-                  (cpAtm * Delta_z * Rho)) *
-                 dt;
-    // double dTs = ((swin(i) * (1 - alpha_a) * (1 - alpha_s) +
-    //                Epsilon_s * Sigma * (pow(ta(i), 4) - pow(ts(i), 4))) /
-    //               cSurf) *
+  for (int j = js; j <= je; ++j) {
+    swin(j) = s0 * (1 + std::sin(omega * time));
+    // double dTa = ((Epsilon_a * Sigma * (-2 * pow(ta(j), 4) + pow(ts(j), 4)))
+    // /
+    //               (cpAtm * Delta_z * Rho)) *
     //              dt;
+    //  double dTs = ((swin(i) * (1 - alpha_a) * (1 - alpha_s) +
+    //                 Epsilon_s * Sigma * (pow(ta(i), 4) - pow(ts(i), 4))) /
+    //                cSurf) *
+    //               dt;
     double dTs =
-        (swin(i) * (1 - alpha_a) * (1 - alpha_s) - Sigma * pow(ts(i), 4)) *
+        (swin(j) * (1 - alpha_a) * (1 - alpha_s) - Sigma * pow(ts(j), 4)) *
         (dt / cSurf);
-    ta(i) = ta(i) + dTa;
-    ts(i) = ts(i) + dTs;
+    // ta(j) = ta(j) + dTa;
+    ts(j) = ts(j) + dTs;
+
+    double precip = 0;
+    for (int n = 3; n < NCLOUD; ++n) {
+      precip = this->pscalars->r(n, ks, j, is);
+      this->pscalars->r(n, ks, j, is) = 0;
+      if (n == 3) accumPrecipH2O(j) += precip;
+      if (n == 4) accumPrecipH2S(j) += precip;
+      if (n == 5) accumPrecipSO2(j) += precip;
+    }
   }
 }
+
+// void Mesh::UserWorkAfterLoop(ParameterInput *pin) {
+
+// for (int b=0; b<nblocal; ++b) {
+//     MeshBlock *pmb = my_blocks(b);
+
+//  AthenaArray<Real> &accumPrecipH2O = pmb->ruser_meshblock_data[2];
+//  AthenaArray<Real> &accumPrecipH2S = pmb->ruser_meshblock_data[3];
+//  AthenaArray<Real> &accumPrecipSO2 = pmb->ruser_meshblock_data[4];
+
+//    BoundaryValues *pbval = pmb->pbval;
+//    int il = pmb->is, iu = pmb->ie, jl = pmb->js, ju = pmb->je,
+//        kl = pmb->ks, ku = pmb->ke;
+
+//  double precip = 0;
+//    for (int n = 0; n < NCLOUD; ++n){
+//      for (int j = 0; j <= ju; ++j) {
+//        precip = pmb->pscalars->r(n, kl, j, il);
+//        pmb->pscalars->r(n, kl, j, il) = 0;
+
+//        if(n=3) accumPrecipH2O(j) += precip;
+//        if(n=4) accumPrecipH2S(j) += precip;
+//        if(n=5) accumPrecipSO2(j) += precip;
+//      }
+//  }
+
+//}
+
+//}
 
 void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
   auto pthermo = Thermodynamics::GetInstance();
@@ -118,7 +170,10 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
         for (int n = 1; n <= NVAPOR; ++n)
           user_out_var(3 + n, k, j, i) =
               pthermo->RelativeHumidity(this, n, k, j, i);
-        user_out_var(5 + NVAPOR - 1, k, j, i) = ruser_meshblock_data[1](j);
+        user_out_var(4 + NVAPOR, k, j, i) = ruser_meshblock_data[1](j);
+        user_out_var(4 + NVAPOR + 1, k, j, i) = ruser_meshblock_data[2](j);
+        user_out_var(4 + NVAPOR + 2, k, j, i) = ruser_meshblock_data[3](j);
+        user_out_var(4 + NVAPOR + 3, k, j, i) = ruser_meshblock_data[4](j);
       }
 }
 
