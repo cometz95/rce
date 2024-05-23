@@ -34,9 +34,8 @@
 #include <special/amars_enroll_vapor_functions_v1.hpp>
 
 Real grav, P0, T0, Tmin;
-// int iH2O, iCO2, iH2S, iSO2;
-int iH2O, iH2S, iSO2;
-int nVars = 9;
+int iH2O;
+int nVars = 7;
 
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   AllocateUserOutputVariables(nVars + NVAPOR);
@@ -50,22 +49,16 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   }
   SetUserOutputVariableName(4 + NVAPOR, "btemp");
   SetUserOutputVariableName(4 + NVAPOR + 1, "accumPrecipH2O");
-  SetUserOutputVariableName(4 + NVAPOR + 2, "accumPrecipH2S");
-  SetUserOutputVariableName(4 + NVAPOR + 3, "accumPrecipSO2");
 
-  AllocateRealUserMeshBlockDataField(5);
+  AllocateRealUserMeshBlockDataField(3);
   ruser_meshblock_data[0].NewAthenaArray(ncells2);
   ruser_meshblock_data[1].NewAthenaArray(ncells2);
   ruser_meshblock_data[2].NewAthenaArray(ncells2);
-  ruser_meshblock_data[3].NewAthenaArray(ncells2);
-  ruser_meshblock_data[4].NewAthenaArray(ncells2);
 
   for (int j = 0; j <= je; ++j) {
     ruser_meshblock_data[0](j) = 0;
     ruser_meshblock_data[1](j) = 230;
     ruser_meshblock_data[2](j) = 0;
-    ruser_meshblock_data[3](j) = 0;
-    ruser_meshblock_data[4](j) = 0;
   }
 }
 
@@ -75,8 +68,6 @@ void MeshBlock::UserWorkInLoop() {
   // AthenaArray<Real> &ta = ruser_meshblock_data[2];
 
   AthenaArray<Real> &accumPrecipH2O = ruser_meshblock_data[2];
-  AthenaArray<Real> &accumPrecipH2S = ruser_meshblock_data[3];
-  AthenaArray<Real> &accumPrecipSO2 = ruser_meshblock_data[4];
 
   double omega = (2 * 3.14159) / 88560;
   double s0 = 1360 * 0.7 * pow(1 / 1.523, 2);
@@ -92,8 +83,10 @@ void MeshBlock::UserWorkInLoop() {
   double time = this->pmy_mesh->time;
   double dt = this->pmy_mesh->dt;
 
-  double tot_fluxd = 0;
-  int numBands = this->pimpl->prad->GetNumBands();
+  // double tot_fluxd = 0;
+  // for (int i = 0; i<8; ++i){
+  //   tot_fluxd += this->prad->
+  // }
 
   for (int j = js; j <= je; ++j) {
     swin(j) = s0 * (1 + std::sin(omega * time));
@@ -104,24 +97,18 @@ void MeshBlock::UserWorkInLoop() {
     //  double dTs = ((swin(i) * (1 - alpha_a) * (1 - alpha_s) +
     //                 Epsilon_s * Sigma * (pow(ta(i), 4) - pow(ts(i), 4))) /
     //                cSurf) *
-    // dt;
-    tot_fluxd = 0;
-    for (int n = 0; n < numBands; ++n) {
-      tot_fluxd += this->pimpl->prad->GetBand(n)->bflxdn(ks, j, is);
-    }
-    double dTs = (swin(j) * (1 - alpha_a) * (1 - alpha_s) + tot_fluxd -
-                  Sigma * pow(ts(j), 4)) *
-                 (dt / cSurf);
+    //               dt;
+    double dTs =
+        (swin(j) * (1 - alpha_a) * (1 - alpha_s) - Sigma * pow(ts(j), 4)) *
+        (dt / cSurf);
     // ta(j) = ta(j) + dTa;
     ts(j) = ts(j) + dTs;
 
     double precip = 0;
-    for (int n = 3; n < NCLOUD; ++n) {
+    for (int n = NCLOUD / 2; n < NCLOUD; ++n) {
       precip = this->pscalars->r(n, ks, j, is);
       this->pscalars->r(n, ks, j, is) = 0;
-      if (n == 3) accumPrecipH2O(j) += precip;
-      if (n == 4) accumPrecipH2S(j) += precip;
-      if (n == 5) accumPrecipSO2(j) += precip;
+      if (n == NCLOUD / 2) accumPrecipH2O(j) += precip;
     }
   }
 }
@@ -174,8 +161,6 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
               pthermo->RelativeHumidity(this, n, k, j, i);
         user_out_var(4 + NVAPOR, k, j, i) = ruser_meshblock_data[1](j);
         user_out_var(4 + NVAPOR + 1, k, j, i) = ruser_meshblock_data[2](j);
-        user_out_var(4 + NVAPOR + 2, k, j, i) = ruser_meshblock_data[3](j);
-        user_out_var(4 + NVAPOR + 3, k, j, i) = ruser_meshblock_data[4](j);
       }
 }
 
@@ -217,9 +202,6 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   // index
   auto pindex = IndexMap::GetInstance();
   iH2O = pindex->GetVaporId("H2O");
-  // iCO2 = pindex->GetVaporId("CO2");
-  iH2S = pindex->GetVaporId("H2S");
-  iSO2 = pindex->GetVaporId("SO2");
   EnrollUserExplicitSourceFunction(Forcing);
 }
 
@@ -227,7 +209,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   srand(Globals::my_rank + time(0));
 
   Application::Logger app("main");
-  app->Log("ProblemGenerator: amars_crm");
+  app->Log("ProblemGenerator: amarsw_crm");
 
   auto pthermo = Thermodynamics::GetInstance();
 
@@ -255,15 +237,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   Real Ps = P0 * pow(Ts / T0, cp / Rd);
   Real xH2O = pin->GetReal("problem", "qH2O.ppmv") / 1.E6;
   // Real xCO2 = pin->GetReal("problem", "qCO2.ppmv") / 1.E6;
-  Real xH2S = pin->GetReal("problem", "qH2S.ppmv") / 1.E6;
-  Real xSO2 = pin->GetReal("problem", "qSO2.ppmv") / 1.E6;
 
   while (iter++ < max_iter) {
     // read in vapors
     air.w[iH2O] = xH2O;
-    // air.w[iCO2] = xCO2;
-    air.w[iH2S] = xH2S;
-    air.w[iSO2] = xSO2;
     air.w[IPR] = Ps;
     air.w[IDN] = Ts;
 
@@ -291,8 +268,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       air.SetZero();
       air.w[iH2O] = xH2O;
       // air.w[iCO2] = xCO2;
-      air.w[iH2S] = xH2S;
-      air.w[iSO2] = xSO2;
       air.w[IPR] = Ps;
       air.w[IDN] = Ts;
 
