@@ -100,7 +100,7 @@ void MeshBlock::UserWorkInLoop() {
   double omega = (2 * 3.14159) / 88560;
   double s0 = 1360 * 0.7 * pow(1 / 1.523, 2);
   double alpha_s = 0.3;
-  double alpha_a = 0.5;
+  double alpha_a = 0.98;
   double Epsilon_a = 0.5;
   double Epsilon_s = 1;
   double Rho = 1.22;
@@ -132,16 +132,24 @@ void MeshBlock::UserWorkInLoop() {
     //                 Epsilon_s * Sigma * (pow(ta(i), 4) - pow(ts(i), 4))) /
     //                cSurf) *
     // dt;
+
+    // get the flux from each band and add it up
     tot_fluxd = 0;
     for (int n = 0; n < numBands; ++n) {
       tot_fluxd += this->pimpl->prad->GetBand(n)->bflxdn(ks, j, is);
     }
+
+    // without atm->surf coupling
     dTs = (swin(j) * (1 - alpha_a) * (1 - alpha_s) - Sigma * pow(ts(j), 4)) *
           (dt / cSurf);
+
+    // with atm->surf coupling (broken, atm heat release too large)
     // dTs = (swin(j) * (1 - alpha_a) * (1 - alpha_s) + tot_fluxd - Sigma *
     // pow(ts(j), 4) ) * (dt / cSurf);
-    //  ta(j) = ta(j) + dTa;
+    //   ta(j) = ta(j) + dTa;
     ts(j) = ts(j) + dTs;
+
+    // track precip
     if (ts(j) > 273)
       H2OisLiquid = true;
     else
