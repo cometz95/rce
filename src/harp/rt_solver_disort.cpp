@@ -229,7 +229,9 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
       dir_axis_[ds_.numu + i] = uphi[i];
     }
   }
-  // ds_.bc.btemp = pmb->prad->pband->psolver->btemp;
+
+  // set the surface temperature from the user input variables
+  //  ds_.bc.btemp = pmb->prad->pband->psolver->btemp;
   AthenaArray<Real> &ts = pmb->ruser_meshblock_data[1];
   ds_.bc.btemp = ts(j);
 }

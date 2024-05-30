@@ -140,6 +140,10 @@ void RadiationBand::Resize(int nc1, int nc2, int nc3, int nstr) {
   bssa.NewAthenaArray(nc3, nc2, nc1);
   bpmom.NewAthenaArray(nstr + 1, nc3, nc2, nc1);
 
+  btoa.NewAthenaArray(rayOutput_.size(), nc3, nc2);
+  bflxup.NewAthenaArray(nc3, nc2, nc1 + 1);
+  bflxdn.NewAthenaArray(nc3, nc2, nc1 + 1);
+
   if (psolver_ != nullptr) {
     psolver_->Resize(nc1 - 2 * NGHOST, nstr);
   }

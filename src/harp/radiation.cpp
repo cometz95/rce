@@ -78,6 +78,8 @@ Radiation::Radiation(MeshBlock *pmb, ParameterInput *pin) {
     // set band toa
     int n = 0;
     for (auto &p : bands_) {
+      //! Delete the old array and initialize with a shallow slice
+      p->btoa.DeleteAthenaArray();
       p->btoa.InitWithShallowSlice(radiance, 3, n, p->GetNumOutgoingRays());
       n += p->GetNumOutgoingRays();
     }
@@ -88,7 +90,12 @@ Radiation::Radiation(MeshBlock *pmb, ParameterInput *pin) {
   flxdn.NewAthenaArray(bands_.size(), ncells3, ncells2, ncells1 + 1);
 
   for (int n = 0; n < bands_.size(); ++n) {
+    //! Delete the old array and initialize with a shallow slice
+    bands_[n]->bflxup.DeleteAthenaArray();
     bands_[n]->bflxup.InitWithShallowSlice(flxup, 4, n, 1);
+
+    //! Delete the old array and initialize with a shallow slice
+    bands_[n]->bflxdn.DeleteAthenaArray();
     bands_[n]->bflxdn.InitWithShallowSlice(flxdn, 4, n, 1);
   }
 

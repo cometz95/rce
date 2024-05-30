@@ -83,6 +83,7 @@ void MeshBlock::UserWorkInLoop() {
   double time = this->pmy_mesh->time;
   double dt = this->pmy_mesh->dt;
 
+  double precip = 0;
   // double tot_fluxd = 0;
   // for (int i = 0; i<8; ++i){
   //   tot_fluxd += this->prad->
@@ -104,11 +105,14 @@ void MeshBlock::UserWorkInLoop() {
     // ta(j) = ta(j) + dTa;
     ts(j) = ts(j) + dTs;
 
-    double precip = 0;
-    for (int n = NCLOUD / 2; n < NCLOUD; ++n) {
-      precip = this->pscalars->r(n, ks, j, is);
-      this->pscalars->r(n, ks, j, is) = 0;
-      if (n == NCLOUD / 2) accumPrecipH2O(j) += precip;
+    double iSkim = is + 10;
+    for (int i = is; i <= ie; ++i) {
+      precip = 0;
+      for (int n = 0; n < NCLOUD; ++n) {
+        precip = this->pscalars->r(n, ks, j, i);
+        this->pscalars->r(n, ks, j, i) = 0;
+        if (n == NCLOUD / 2) accumPrecipH2O(j) += precip;
+      }
     }
   }
 }

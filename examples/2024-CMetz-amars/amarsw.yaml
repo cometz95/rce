@@ -21,7 +21,7 @@ B1:
   grid-type: regular
   wavenumber-range: [1., 100.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2]
+  opacity: [H2O]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
@@ -31,7 +31,7 @@ B2:
   grid-type: regular
   wavenumber-range: [100., 150.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2]
+  opacity: [H2O]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
@@ -41,7 +41,7 @@ B3:
   grid-type: regular
   wavenumber-range: [150., 400.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2]
+  opacity: [H2O]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
@@ -51,7 +51,7 @@ B4:
   grid-type: regular
   wavenumber-range: [400., 500.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2]
+  opacity: [H2O]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
@@ -61,7 +61,7 @@ B5:
   grid-type: regular
   wavenumber-range: [500., 650.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2]
+  opacity: [H2O]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
@@ -71,7 +71,7 @@ B6:
   grid-type: regular
   wavenumber-range: [650., 850.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2]
+  opacity: [H2O]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
@@ -81,7 +81,7 @@ B7:
   grid-type: regular
   wavenumber-range: [850., 1000.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2]
+  opacity: [H2O]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
@@ -91,7 +91,7 @@ B8:
   grid-type: regular
   wavenumber-range: [1000., 2000.]
   resolution: 0.1
-  opacity: [H2O, H2S, SO2]
+  opacity: [H2O]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01

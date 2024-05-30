@@ -8,31 +8,31 @@ tasklist    = ImplicitHydroTasks
 
 <output0>
 file_type   = rst
-dt          = 1.E3
+dt          = 1.E2
 
 <output1>
 file_type   = hst       # History data dump
-dt          = 5.E2      # time increment between outputs
+dt          = 1.E2      # time increment between outputs
 
 <output2>
 file_type   = pnetcdf    # Binary data dump
 variable    = prim      # variables to be output
-dt          = 5.E2       # time increment between outputs
+dt          = 1.E2       # time increment between outputs
 
 <output3>
 file_type   = pnetcdf
 variable    = uov
-dt          = 5.E2
+dt          = 1.E2
 
 <output4>
 file_type   = pnetcdf
 variable    = diag
-dt          = 5.E2
+dt          = 1.E2
 
 <output5>
 file_type   = pnetcdf
 variable    = rad
-dt          = 5.E2
+dt          = 1.E2
 
 <time>
 cfl_number  = 0.9           # The Courant, Friedrichs, & Lewy (CFL) Number
