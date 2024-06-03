@@ -61,6 +61,8 @@ RadiationBand::RTSolverDisort::RTSolverDisort(RadiationBand *pmy_band,
   if (pmy_band->HasPar("albedo")) {
     ds_.bc.albedo = pmy_band->GetPar<Real>("albedo");
   } else {
+    // hard code hack to fix the surface albedo to 0, emissivity to 1, since it
+    // won't pickup from the yaml file
     ds_.bc.albedo = 0.;
   }
 
@@ -231,7 +233,6 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
   }
 
   // set the surface temperature from the user input variables
-  //  ds_.bc.btemp = pmb->prad->pband->psolver->btemp;
   AthenaArray<Real> &ts = pmb->ruser_meshblock_data[1];
   ds_.bc.btemp = ts(j);
 }
@@ -258,6 +259,7 @@ void RadiationBand::RTSolverDisort::CalBandFlux(MeshBlock const *pmb, int k,
     override_with_stellar_spectra = true;
   }
 
+  Real total_wght = 0;
   for (auto &spec : pmy_band_->pgrid_->spec) {
     if (override_with_stellar_spectra) {
       // stellar source function
@@ -280,6 +282,13 @@ void RadiationBand::RTSolverDisort::CalBandFlux(MeshBlock const *pmb, int k,
     if (pmb->pcoord != nullptr) {
       addDisortFlux(pmb->pcoord, b++, k, j, il, iu);
     }
+
+    total_wght += spec.wght;
+  }
+
+  for (int i = il; i <= iu; ++i) {
+    pmy_band_->bflxup(k, j, i) /= total_wght;
+    pmy_band_->bflxdn(k, j, i) /= total_wght;
   }
 }
 
