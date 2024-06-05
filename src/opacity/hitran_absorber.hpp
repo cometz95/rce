@@ -28,4 +28,11 @@ class HitranAbsorber : public Absorber {
   Real getRefTemp(Real pres) const;
 };
 
+class HitranAbsorberCK : public HitranAbsorber {
+ public:
+   void LoadCoefficient(std::string fname, int bid) override;
+ private:
+   std::vector<Real> weights_;
+};
+
 #endif  // SRC_HARP_HITRAN_ABSORBER_HPP_

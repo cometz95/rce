@@ -141,6 +141,12 @@ class CorrelatedKtable:
         dim.long_name = "gaussian quadrature points"
         dim.units = "1"
 
+        ncfile.createDimension("Wavenumber", len(self.gaxis))
+        dim = ncfile.createVariable("Wavenumber", "f8", ("Wavenumber",))
+        dim[:] = self.wave
+        dim.long_name = "gaussian quadrature equivalent wavenumber"
+        dim.units = "1/cm"
+
         ncfile.createDimension("weights", len(self.weights))
         dim = ncfile.createVariable("weights", "f8", ("weights",))
         dim[:] = self.weights
@@ -165,7 +171,7 @@ class CorrelatedKtable:
         dim.long_name = "temperature anomaly grid"
         dim.units = "K"
 
-        var = ncfile.createVariable(self.name, "f8", ("gaxis", "Pressure", "TempGrid"))
+        var = ncfile.createVariable(self.name, "f8", ("Wavenumber", "Pressure", "TempGrid"))
         var[:] = self.ckcoeff
         var.long_name = "correlated k-coefficients"
         var.units = self.kunits
@@ -193,7 +199,8 @@ class HitranCorrelatedKtable(CorrelatedKtable):
         self.temp = data.variables["Temperature"][:]
         self.temp_grid = data.variables["TempGrid"][:]
 
-    def make_cktable(self, nbins: int=3, npoints: int=50):
+    def make_cktable(self, wmin: float, wmax: float,
+                    nbins: int=3, npoints: int=50):
         """
         Make the correlated k-table. This function will call make_ck_axis for each temperature
         grid point.
@@ -210,9 +217,12 @@ class HitranCorrelatedKtable(CorrelatedKtable):
         self.ckcoeff = np.zeros((nbins * npoints, nlayer, ntemp))
         for i in range(ntemp):
             self.ckcoeff[:, :, i] = self.make_ck_coeff(self.kcoeff[:,:,i], nlayer // 2, nbins, npoints)
+        self.wave = wmin + self.gaxis * (wmax - wmin)
 
 if __name__ == "__main__":
+    wmin = 1.
+    wmax = 100.
     h2o = HitranCorrelatedKtable("H2O")
     h2o.load_opacity("amars-kcoeff_B1.nc")
-    h2o.make_cktable()
+    h2o.make_cktable(wmin, wmax)
     h2o.write_opacity("amars-cktable_B1.nc")

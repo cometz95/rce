@@ -150,3 +150,8 @@ Real HitranAbsorber::GetAttenuation(Real wave1, Real wave2,
   }
   return 1.E-3 * exp(val) * dens * x0;  // ln(m*2/kmol) -> 1/m
 }
+
+void HitranAbsorberCK::LoadCoefficient(std::string fname, int b) {
+  HitranAbsorber::LoadCoefficient(fname, b);
+  // add extra code here to load weights
+}

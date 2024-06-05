@@ -91,6 +91,8 @@ AbsorberPtr AbsorberFactory::createAbsorberPartial(std::string name,
     ab = std::make_shared<XizH2HeCIA>();
   } else if (type == "Hitran") {
     ab = std::make_shared<HitranAbsorber>(name);
+  } else if (type == "HitranCK") {
+    ab = std::make_shared<HitranAbsorberCK>(name);
   } else if (type == "FreedmanSimple") {
     ab = std::make_shared<FreedmanSimple>(name);
   } else if (type == "FreedmanSimple2") {
