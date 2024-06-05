@@ -177,9 +177,14 @@ class HitranCorrelatedKtable(CorrelatedKtable):
     """
     Derived class to generate a correlated k-table from HITRAN line-by-line opacity
     """
-    def load_opacity(self, fname):
+    def load_opacity(self, fname: str):
         """
         Load the opacity data from a file. Overrides the base class method.
+        
+        Parameters
+        ----------
+        fname : str
+            The name of the file
         """
         data = Dataset(fname, "r")
         self.kcoeff = data.variables[self.name][:]
@@ -188,7 +193,7 @@ class HitranCorrelatedKtable(CorrelatedKtable):
         self.temp = data.variables["Temperature"][:]
         self.temp_grid = data.variables["TempGrid"][:]
 
-    def make_cktable(self, nbins=3, npoints=50):
+    def make_cktable(self, nbins: int=3, npoints: int=50):
         """
         Make the correlated k-table. This function will call make_ck_axis for each temperature
         grid point.
