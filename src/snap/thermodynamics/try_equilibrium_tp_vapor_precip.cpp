@@ -8,17 +8,18 @@
 #include "thermodynamics.hpp"
 
 // Calculates phase equilibrium of
-// Vapor <=> Cloud
+// Vapor <=> Precipitate (surface)
 //
 // Example phase equilibrium:
 // H2O -> H2O(l)
 //
-RealArrayX Thermodynamics::TryEquilibriumTP_VaporCloud(AirParcel const& qfrac,
-                                                       int i, Real cv_hat,
-                                                       bool misty) const {
+RealArrayX Thermodynamics::TryEquilibriumTP_VaporCloud(
+    AirParcel const& qfrac, int i, Real cv_hat, bool misty, Real layerSclFact,
+    Real amd, Real btemp) const {
   Real xv = qfrac.w[i], xg = 1. - xv;
-  Real t = qfrac.w[IDN] / t3_[i];
+  Real t = btemp;
   std::vector<Real> rates(1 + cloud_index_set_[i].size(), 0.);
+  Real xp = amd * ? ? ? ;  // precipitate mole fraction
 
 #pragma omp simd reduction(+ : xg)
   for (int n = 0; n < NCLOUD; ++n) xg += -qfrac.c[n];
@@ -26,7 +27,8 @@ RealArrayX Thermodynamics::TryEquilibriumTP_VaporCloud(AirParcel const& qfrac,
   for (int n = 0; n < cloud_index_set_[i].size(); ++n) {
     int j = cloud_index_set_[i][n];
     Real xs = svp_func1_[i][n](qfrac, i, j) / qfrac.w[IPR];
-    Real xc = qfrac.c[j];
+    ? ? ?  // need to pass btemp into svp_func1_ rather than qfrac
+        Real xc = qfrac.c[j];
 
     if (misty) {  // in a cloudy ambient environment
       rates[0] += xs - xv / (xg + xv);
@@ -58,14 +60,16 @@ RealArrayX Thermodynamics::TryEquilibriumTP_VaporCloud(AirParcel const& qfrac,
 
     // condensate at most xv vapor
     if (rate < 0.) {
-      rates[0] += -std::min(-rate, xv);
-      rates[1 + n] = std::min(-rate, xv);
+      // only condensing from a ~1m layer of vapor near surf, so scale the
+      // rate/total amount of vapor by layerSclFact
+      rates[0] += -std::min(-rate / layerSclFact, xv / layerSclFact);
+      rates[1 + n] = std::min(-rate / layerSclFact, xv / layerSclFact);
     }
 
-    // evaporate at most xc cloud
+    // evaporate at most xc precip
     if (rate > 0.) {
-      rates[0] += std::min(rate, xc);
-      rates[1 + n] = -std::min(rate, xc);
+      rates[0] += std::min(rate, xp);
+      rates[1 + n] = -std::min(rate, xp);
     }
   }
 
