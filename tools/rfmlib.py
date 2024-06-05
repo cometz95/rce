@@ -1,16 +1,35 @@
 # Purpose: Library for RFM calculations
 
 import os, subprocess
+import numpy as np
 from collections import OrderedDict
+from typing import List, Tuple, Dict
 
-
-# create rfm driver file
 def create_rfm_driver(
-    wav_grid: tuple[float, float, float],
-    tem_grid: tuple[float, float, float],
-    absorbers: list[str],
+    wav_grid: Tuple[float, float, float],
+    tem_grid: Tuple[int, float, float],
+    absorbers: List[str],
     hitran_file: str,
-) -> dict:
+) -> Dict[str, str]:
+    """
+    Create a RFM driver file.
+
+    Parameters
+    ----------
+    wav_grid : Tuple[float, float, float]
+        Wavenumber grid by minimum, maximum and resolution.
+    tem_grid : Tuple[int, float, float]
+        Temperature grid by number of points, minimum and maximum.
+    absorbers : List
+        A list of absorbers.
+    hitran_file : str
+        Path to HITRAN file.
+
+    Returns
+    -------
+    driver : Dict[str, str]
+        A dictionary containing the driver file content.
+    """
     driver = OrderedDict(
         [
             ("*HDR", "Header for rfm"),
@@ -26,16 +45,26 @@ def create_rfm_driver(
     )
     return driver
 
+def write_rfm_atm(atm: Dict[str, np.ndarray]) -> None:
+    """
+    Write RFM atmosphere to file.
 
-# write rfm atmosphere file
-def write_rfm_atm(atm: dict) -> None:
+    Parameters
+    ----------
+    atm : Dict[str, np.ndarray]
+        A dictionary containing the atmosphere
+
+    Returns
+    -------
+    None
+    """
     print("# Creating rfm.atm ...")
-    num_layers = atm["HGT"].shape[0]
+    num_layers = atm["ALT"].shape[0]
     with open("rfm.atm", "w") as file:
         file.write("%d\n" % num_layers)
         file.write("*HGT [km]\n")
         for i in range(num_layers):  # m -> km
-            file.write("%.8g " % (atm["HGT"][i] / 1.0e3,))
+            file.write("%.8g " % (atm["ALT"][i] / 1.0e3,))
         file.write("\n*PRE [mb]\n")
         for i in range(num_layers):  # pa -> mb
             file.write("%.8g " % (atm["PRE"][i] / 100.0,))
@@ -43,7 +72,7 @@ def write_rfm_atm(atm: dict) -> None:
         for i in range(num_layers):
             file.write("%.8g " % atm["TEM"][i])
         for name, val in atm.items():
-            if name in ["HGT", "PRE", "TEM"]:
+            if name in ["ALT", "PRE", "TEM"]:
                 continue
             file.write("\n*" + name + " [ppmv]\n")
             for j in range(num_layers):  # mol/mol -> ppmv
@@ -51,9 +80,19 @@ def write_rfm_atm(atm: dict) -> None:
         file.write("\n*END")
     print("# rfm.atm written.")
 
+def write_rfm_drv(driver: Dict[str, str]) -> None:
+    """
+    Write RFM driver to file.
 
-# write rfm driver file
-def write_rfm_drv(driver: dict) -> None:
+    Parameters
+    ----------
+    driver : Dict[str, str]
+        A dictionary containing the driver file content.
+
+    Returns
+    -------
+    None
+    """
     print("# Creating rfm.drv ...")
     with open("rfm.drv", "w") as file:
         for sec in driver:
@@ -62,9 +101,18 @@ def write_rfm_drv(driver: dict) -> None:
                 file.write(" " * 4 + driver[sec] + "\n")
     print("# rfm.drv written.")
 
-
-# run rfm
 def run_rfm() -> None:
+    """
+    Call to run RFM.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
     process = subprocess.Popen(
         ["./rfm.release"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
@@ -75,12 +123,10 @@ def run_rfm() -> None:
 
     process.communicate()
 
-
-# create netcdf input file
 def create_netcdf_input(
     fname: str,
-    absorbers: list,
-    atm: dict,
+    absorbers: List[str],
+    atm: Dict[str, np.ndarray],
     wmin: float,
     wmax: float,
     wres: float,
@@ -88,6 +134,35 @@ def create_netcdf_input(
     tmin: float,
     tmax: float,
 ) -> str:
+    """
+    Create an input file for writing kcoeff table to netCDF format
+
+    Parameters
+    ----------
+    fname : str
+        Name of the file.
+    absorbers : list
+        A list of absorbers.
+    atm : Dict[str, np.ndarray]
+        A dictionary containing the atmosphere.
+    wmin : float
+        Minimum wavenumber.
+    wmax : float
+        Maximum wavenumber.
+    wres : float
+        Wavenumber resolution.
+    tnum : int
+        Number of temperature points.
+    tmin : float
+        Minimum temperature.
+    tmax : float
+        Maximum temperature.
+
+    Returns
+    -------
+    fname : str
+        Name of the input file for netCDf
+    """
     print(f"# Creating {fname}.in ...")
     with open(f"{fname}.in", "w") as file:
         file.write("# Molecular absorber\n")
@@ -121,15 +196,33 @@ def create_netcdf_input(
     print(f"# {fname}.in written.")
     return f"{fname}.in"
 
-
-# write kcoeff table to netcdf file
 def write_ktable(
     fname: str,
-    absorbers: list[str],
-    atm: dict,
-    wav_grid: tuple[float, float, float],
-    tem_grid: tuple[float, float, float],
+    absorbers: List[str],
+    atm: Dict[str, np.ndarray]
+    wav_grid: Tuple[float, float, float],
+    tem_grid: Tuple[int, float, float],
 ) -> None:
+    """
+    Write kcoeff table to netCDF file.
+
+    Parameters
+    ----------
+    fname : str
+        Name of the file.
+    absorbers : List
+        A list of absorbers.
+    atm : Dict[str, np.ndarray]
+        A dictionary containing the atmosphere.
+    wav_grid : Tuple[float, float, float]
+        Wavenumber grid by minimum, maximum and resolution.
+    tem_grid : Tuple[int, float, float]
+        Temperature grid by number of points, minimum and maximum.
+
+    Returns
+    -------
+    None
+    """
     inpfile = create_netcdf_input(fname, absorbers, atm, *wav_grid, *tem_grid)
 
     process = subprocess.Popen(

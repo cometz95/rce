@@ -112,8 +112,11 @@ def read_atm_profile_nc(filename: str, species: List[str], wght: List[float]) ->
     mmw = data["rho"][0, :, 0, 0] * __Constants.kRgas * atm["TEM"] / atm["PRE"]
 
     # mole fractions
-    for i, spec in enumerate(species):
-        atm[spec] = data["vapor"+str(i+1)][0, :, 0, 0] / wght[i] * mmw
+    if len(species) == 1:
+        atm[species[0]] = data["vapor"][0, :, 0, 0] / wght[0] * mmw
+    else:
+        for i, spec in enumerate(species):
+            atm[spec] = data["vapor"+str(i+1)][0, :, 0, 0] / wght[i] * mmw
 
     return atm
 
@@ -300,6 +303,26 @@ def read_atm_profile(filename: str, species: Optional[List[str]] = None, wght:
         data = read_atm_profile_nc(filename, species, wght)
     return data
 
+def get_species_names(atm: Dict[str, np.ndarray]) -> List[str]:
+    """
+    Get the species names from an atmospheric profile.
+
+    Parameters:
+    -----------
+    atm: Dict[str, np.ndarray]
+        A dictionary containing the atmospheric profile
+
+    Returns:
+    --------
+    species: List[str]
+        A list of species names
+    """
+    species = []
+    for key in atm.keys():
+        if key not in ['IDX', 'ALT', 'PRE', 'TEM']:
+            species.append(key)
+    return species
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Read and process an atmospheric profile file. \
                                      Supported file formats are .atm, .txt, and .nc. \
@@ -322,17 +345,20 @@ if __name__ == "__main__":
                         help="A list of units for altitude, pressure, and mole fractions, seperated by comma.")
     parser.add_argument('-v', '--vapor', required=False,
                         help="A list of vapor names to read from the file, sperated by comma.")
-    parser.add_argument('-m', '--wght', required=False,
+    parser.add_argument('-w', '--wght', required=False,
                         help="A list of molecular weights in g/mol for the vapors, seperated by comma.")
     args = vars(parser.parse_args())
 
     if args["vapor"] is not None:
         species = args["vapor"].split(',')
+        print("Species:", species)
     else:
         species = None
 
     if args["wght"] is not None:
-        wght = [float(m) for m in args["wght"].split(',')]
+        # g/mol to kg/mol
+        wght = [float(m) * 1.e-3 for m in args["wght"].split(',')]
+        print("Molecular weights:", [f'{w:.4g}' for w in wght])
     else:
         wght = None
 
@@ -341,8 +367,6 @@ if __name__ == "__main__":
         raise ValueError("The number of unit strings must be 3, e.g., km,pa,1")
     
     data = read_atm_profile(args["input"], species, wght)
-    for key, value in data.items():
-        print(f"{key}: {value}")
 
     if args["output"]:
         comment = "Command: " + get_command_string()
