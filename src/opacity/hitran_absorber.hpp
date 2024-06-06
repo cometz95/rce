@@ -39,7 +39,7 @@ class HitranAbsorberCK : public HitranAbsorber {
   void ModifySpectralGrid(std::vector<SpectralBin>& spec) const;
 
  private:
-  std::vector<double> weights_;
+  std::vector<Real> weights_;
 };
 
 #endif  // SRC_HARP_HITRAN_ABSORBER_HPP_
