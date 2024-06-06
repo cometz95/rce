@@ -6,6 +6,9 @@
 #include <vector>
 
 // harp
+#include <harp/spectral_grid.hpp>
+
+// opacity
 #include "absorber.hpp"
 
 class HitranAbsorber : public Absorber {
@@ -30,9 +33,13 @@ class HitranAbsorber : public Absorber {
 
 class HitranAbsorberCK : public HitranAbsorber {
  public:
-   void LoadCoefficient(std::string fname, int bid) override;
+  HitranAbsorberCK(std::string name) : HitranAbsorber(name) {}
+
+  void LoadCoefficient(std::string fname, int bid) override;
+  void ModifySpectralGrid(std::vector<SpectralBin>& spec) const;
+
  private:
-   std::vector<Real> weights_;
+  std::vector<double> weights_;
 };
 
 #endif  // SRC_HARP_HITRAN_ABSORBER_HPP_

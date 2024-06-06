@@ -152,6 +152,87 @@ Real HitranAbsorber::GetAttenuation(Real wave1, Real wave2,
 }
 
 void HitranAbsorberCK::LoadCoefficient(std::string fname, int b) {
-  HitranAbsorber::LoadCoefficient(fname, b);
-  // add extra code here to load weights
+#ifdef NETCDFOUTPUT
+  int fileid, dimid, varid, err;
+  nc_open(fname.c_str(), NC_NETCDF4, &fileid);
+
+  nc_inq_dimid(fileid, "Wavenumber", &dimid);
+  nc_inq_dimlen(fileid, dimid, len_);
+  nc_inq_dimid(fileid, "Pressure", &dimid);
+  nc_inq_dimlen(fileid, dimid, len_ + 1);
+  nc_inq_dimid(fileid, "TempGrid", &dimid);
+  nc_inq_dimlen(fileid, dimid, len_ + 2);
+  nc_inq_dimid(fileid, "weights", &dimid);
+  nc_inq_dimlen(fileid, dimid, len_ + 3);
+
+  axis_.resize(len_[0] + len_[1] + len_[2] + len_[3]);
+
+  nc_inq_varid(fileid, "Wavenumber", &varid);
+  nc_get_var_double(fileid, varid, axis_.data());
+
+  err = nc_inq_varid(fileid, "Pressure", &varid);
+  if (err != NC_NOERR) {
+    throw std::runtime_error(nc_strerror(err));
+  }
+
+  err = nc_get_var_double(fileid, varid, axis_.data() + len_[0]);
+  if (err != NC_NOERR) {
+    throw std::runtime_error(nc_strerror(err));
+  }
+
+  err = nc_inq_varid(fileid, "TempGrid", &varid);
+  if (err != NC_NOERR) {
+    throw std::runtime_error(nc_strerror(err));
+  }
+
+  err = nc_get_var_double(fileid, varid, axis_.data() + len_[0] + len_[1]);
+  if (err != NC_NOERR) {
+    throw std::runtime_error(nc_strerror(err));
+  }
+
+  err = nc_inq_varid(fileid, "weights", &varid);
+  if (err != NC_NOERR) {
+    throw std::runtime_error(nc_strerror(err));
+  }
+
+  err = nc_get_var_double(fileid, varid,
+                          axis_.data() + len_[0] + len_[1] + len_[2]);
+  if (err != NC_NOERR) {
+    throw std::runtime_error(nc_strerror(err));
+  }
+
+  for (int i = 0; i < len_[3]; ++i)
+    weights_[i] = *(axis_.data() + len_[0] + len_[1] + len_[2] + i);
+
+  Real *temp = new Real[len_[1]];
+  nc_inq_varid(fileid, "Temperature", &varid);
+  nc_get_var_double(fileid, varid, temp);
+
+  refatm_.NewAthenaArray(NHYDRO, len_[1]);
+  for (int i = 0; i < len_[1]; i++) {
+    refatm_(IPR, i) = axis_[len_[0] + i];
+    refatm_(IDN, i) = temp[i];
+  }
+
+  kcoeff_.resize(len_[0] * len_[1] * len_[2] * len_[3]);
+  nc_inq_varid(fileid, GetName().c_str(), &varid);
+  nc_get_var_double(fileid, varid, kcoeff_.data());
+  nc_close(fileid);
+  delete[] temp;
+#endif
+}
+
+//(cmetz) spec is initially unsized because
+// CKTableSpectralGrid::CKTableSpectralGrid is left undefined but this is OK,
+// because ModifySpectralGrid is called right after LoadCoeff in RadiationBand
+// constructor
+void HitranAbsorberCK::ModifySpectralGrid(
+    std::vector<SpectralBin> &spec) const {
+  spec.resize(weights_.size());
+
+  for (size_t i = 0; i < weights_.size(); ++i) {
+    spec[i].wav1 = axis_.data()[i];
+    spec[i].wav2 = axis_.data()[i];
+    spec[i].wght = weights_[i];
+  }
 }
