@@ -179,7 +179,6 @@ void HitranAbsorberCK::LoadCoefficient(std::string fname, int b) {
   }
 
   nc_close(fileid);
-  delete[] temp;
 #endif
 }
 

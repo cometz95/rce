@@ -77,3 +77,6 @@ CustomSpacingSpectralGrid::CustomSpacingSpectralGrid(YAML::Node const& my)
     spec[i].wght = 1.;
   }
 }
+
+CKTableSpectralGrid::CKTableSpectralGrid(YAML::Node const& my)
+    : SpectralGridBase(my) {}
