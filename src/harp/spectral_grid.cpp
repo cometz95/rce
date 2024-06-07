@@ -77,11 +77,3 @@ CustomSpacingSpectralGrid::CustomSpacingSpectralGrid(YAML::Node const& my)
     spec[i].wght = 1.;
   }
 }
-
-CKTableSpectralGrid::CKTableSpectralGrid(YAML::Node const& my)
-    : SpectralGridBase(my) {
-  auto wpair = RadiationHelper::parse_wave_range(my);
-
-  Real wav1 = wpair.first;
-  Real wav2 = wpair.second;
-}
