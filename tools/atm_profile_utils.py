@@ -148,18 +148,19 @@ def read_atm_profile_nc(
 
     # calc/read mole fractions
     i = 0
+    sum_vapor = 0
     while i < num_vapors:
         if num_vapors == 1:
             atm[species[i]] = data["vapor"][0, :, 0, 0] / wght[i] * mmw
         elif num_vapors > 1:
             atm[species[i]] = data["vapor" + str(i + 1)][0, :, 0, 0] / wght[i] * mmw
-        sum_vapor = atm[species[i]]
-        i = i + 1
+        sum_vapor += atm[species[i]]
+        i += 1
     dry_index = 0
     while i < len(species):
         atm[species[i]] = dry_molfrac[dry_index] * (1 - sum_vapor)
-        i = i + 1
-        dry_index = dry_index + 1
+        i += 1
+        dry_index += 1
 
     return atm
 

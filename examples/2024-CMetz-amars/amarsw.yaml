@@ -1,16 +1,16 @@
 opacity-sources:
-  - name: H2O_B1
-    class: Hitran
+  - name: H2O
+    class: HitranCK
     data: amars-cktable_B1.nc
     dependent-species: [vapor.H2O]
 
   - name: CO2
-    class: Hitran
+    class: HitranCK
     data: amars-cktable_B2.nc
     dependent-species: [vapor.dry]
 
   - name: H2O_B3
-    class: Hitran
+    class: HitranCK
     data: amars-cktable_B3.nc
     dependent-species: [vapor.H2O]
 
@@ -25,7 +25,7 @@ B1:
   units: cm-1
   grid-type: cktable
   wavenumber-range: [1., 500.]
-  opacity: [H2O_B1]
+  opacity: [H2O]
   resolution: 0.1
   rt-solver: Disort
   flags: [thermal_emission]
@@ -44,9 +44,9 @@ B2:
 B3:
   units: cm-1
   grid-type: cktable
-  resolution: 0.1
   wavenumber-range: [1200., 2000.]
-  opacity: [H2O_B3]
+  opacity: [H2O]
+  resolution: 0.1
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
