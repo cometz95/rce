@@ -127,8 +127,9 @@ void MeshBlock::UserWorkInLoop() {
     else
       H2OisLiquid = false;
 
-    rhoatm = this->phydro->w(IPR, ks, j, is) /
-             (pthermo->GetRd() * this->phydro->w(IDN, ks, j, is));
+    rhoatm =
+        (this->phydro->w(IPR, ks, j, is) * pthermo->GetMu(this, ks, j, is)) /
+        (Constants::Rgas * this->phydro->w(IDN, ks, j, is));
     // only skim off the first layer of precip
     iSkim = is;
     for (int i = is; i <= iSkim; ++i) {

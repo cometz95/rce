@@ -1,12 +1,12 @@
 opacity-sources:
   - name: H2O
     class: Hitran
-    data: amars-ktable.nc
+    data: amars-kcoeff.nc
     dependent-species: [vapor.H2O]
 
   - name: CO2
     class: Hitran
-    data: amars-ktable.nc
+    data: amars-kcoeff.nc
     dependent-species: [vapor.dry]
 
   - name: cloud
@@ -14,14 +14,14 @@ opacity-sources:
     dependent-species: [cloud.H2O(c), cloud.H2O(p)]
     parameters: {qext: 1., ssa: 0.01, asymf: 0.01}
 
-bands: [B1, B2, B3]
+bands: [B1, B2, B3, B4, B5, B6, B7, B8]
 
 B1:
   units: cm-1
   grid-type: regular
-  wavenumber-range: [1., 500.]
-  opacity: [H2O,CO2]
+  wavenumber-range: [1., 100.]
   resolution: 0.1
+  opacity: [H2O,CO2]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
@@ -29,8 +29,8 @@ B1:
 B2:
   units: cm-1
   grid-type: regular
+  wavenumber-range: [100., 150.]
   resolution: 0.1
-  wavenumber-range: [500., 1200.]
   opacity: [H2O,CO2]
   rt-solver: Disort
   flags: [thermal_emission]
@@ -39,8 +39,58 @@ B2:
 B3:
   units: cm-1
   grid-type: regular
+  wavenumber-range: [150., 400.]
   resolution: 0.1
-  wavenumber-range: [1200., 2000.]
+  opacity: [H2O,CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+  albedo: 0.01
+
+B4:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [400., 500.]
+  resolution: 0.1
+  opacity: [H2O,CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+  albedo: 0.01
+
+B5:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [500., 650.]
+  resolution: 0.1
+  opacity: [H2O,CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+  albedo: 0.01
+
+B6:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [650., 850.]
+  resolution: 0.1
+  opacity: [H2O,CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+  albedo: 0.01
+
+B7:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [850., 1000.]
+  resolution: 0.1
+  opacity: [H2O,CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+  albedo: 0.01
+
+B8:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [1000., 2000.]
+  resolution: 0.1
   opacity: [H2O,CO2]
   rt-solver: Disort
   flags: [thermal_emission]

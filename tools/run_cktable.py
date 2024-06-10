@@ -3,6 +3,7 @@ from netCDF4 import Dataset
 from scipy.interpolate import interp1d
 import numpy as np
 
+
 def get_gauss_legendre(n: int):
     """
     Get the Gauss-Legendre quadrature points and weights
@@ -24,6 +25,7 @@ def get_gauss_legendre(n: int):
     # now change it from 0 to 1
     return (p + 1.0) / 2.0, w / 2.0
 
+
 class CorrelatedKtable:
     """
     A base class to generate a correlated k-table
@@ -33,6 +35,7 @@ class CorrelatedKtable:
     name : str
         The name of the absorbing species
     """
+
     def __init__(self, name: str):
         """
         Initialize the class
@@ -56,9 +59,14 @@ class CorrelatedKtable:
         """
         pass
 
-    def make_ck_coeff(self, kcoeff: np.ndarray, ilayer: int,
-                      nbins: int, npoints: int,
-                      log_opacity: bool = True) -> np.ndarray:
+    def make_ck_coeff(
+        self,
+        kcoeff: np.ndarray,
+        ilayer: int,
+        nbins: int,
+        npoints: int,
+        log_opacity: bool = True,
+    ) -> np.ndarray:
         """
         Make the correlated k-table axis and sort the k-coefficients
 
@@ -105,7 +113,7 @@ class CorrelatedKtable:
             else:
                 bin_divides[i] = np.searchsorted(kcoeff[:, ilayer], exp(lnk)) / nwave
 
-        #print('bin_divides:', bin_divides)
+        # print('bin_divides:', bin_divides)
 
         gaxis = np.zeros(nbins * npoints)
         weights = np.zeros(nbins * npoints)
@@ -113,10 +121,14 @@ class CorrelatedKtable:
 
         gg, ww = get_gauss_legendre(npoints)
         for i in range(nbins):
-            gaxis[i * npoints:(i + 1) * npoints] = gg * (bin_divides[i + 1] - bin_divides[i]) + bin_divides[i]
-            weights[i * npoints:(i + 1) * npoints] = ww * (bin_divides[i + 1] - bin_divides[i])
+            gaxis[i * npoints : (i + 1) * npoints] = (
+                gg * (bin_divides[i + 1] - bin_divides[i]) + bin_divides[i]
+            )
+            weights[i * npoints : (i + 1) * npoints] = ww * (
+                bin_divides[i + 1] - bin_divides[i]
+            )
 
-        for j in range(nlayer): 
+        for j in range(nlayer):
             kcoeff_func = interp1d(np.arange(nwave), kcoeff[:, j])
             ckcoeff[:, j] = kcoeff_func(gaxis * (nwave - 1))
 
@@ -171,7 +183,9 @@ class CorrelatedKtable:
         dim.long_name = "temperature anomaly grid"
         dim.units = "K"
 
-        var = ncfile.createVariable(self.name, "f8", ("Wavenumber", "Pressure", "TempGrid"))
+        var = ncfile.createVariable(
+            self.name, "f8", ("Wavenumber", "Pressure", "TempGrid")
+        )
         var[:] = self.ckcoeff
         var.long_name = "correlated k-coefficients"
         var.units = self.kunits
@@ -179,14 +193,16 @@ class CorrelatedKtable:
         ncfile.close()
         print("Correlated k-table written to", fname)
 
+
 class HitranCorrelatedKtable(CorrelatedKtable):
     """
     Derived class to generate a correlated k-table from HITRAN line-by-line opacity
     """
+
     def load_opacity(self, fname: str):
         """
         Load the opacity data from a file. Overrides the base class method.
-        
+
         Parameters
         ----------
         fname : str
@@ -199,8 +215,7 @@ class HitranCorrelatedKtable(CorrelatedKtable):
         self.temp = data.variables["Temperature"][:]
         self.temp_grid = data.variables["TempGrid"][:]
 
-    def make_cktable(self, wmin: float, wmax: float,
-                    nbins: int=3, npoints: int=50):
+    def make_cktable(self, wmin: float, wmax: float, nbins: int = 3, npoints: int = 8):
         """
         Make the correlated k-table. This function will call make_ck_axis for each temperature
         grid point.
@@ -216,12 +231,15 @@ class HitranCorrelatedKtable(CorrelatedKtable):
         ntemp = self.kcoeff.shape[2]
         self.ckcoeff = np.zeros((nbins * npoints, nlayer, ntemp))
         for i in range(ntemp):
-            self.ckcoeff[:, :, i] = self.make_ck_coeff(self.kcoeff[:,:,i], nlayer // 2, nbins, npoints)
+            self.ckcoeff[:, :, i] = self.make_ck_coeff(
+                self.kcoeff[:, :, i], nlayer // 2, nbins, npoints
+            )
         self.wave = wmin + self.gaxis * (wmax - wmin)
 
+
 if __name__ == "__main__":
-    wmin = 1.
-    wmax = 100.
+    wmin = 1.0
+    wmax = 100.0
     h2o = HitranCorrelatedKtable("H2O")
     h2o.load_opacity("amars-kcoeff_B1.nc")
     h2o.make_cktable(wmin, wmax)

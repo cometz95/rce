@@ -56,16 +56,30 @@ RealArrayX Thermodynamics::TryEquilibriumTP_VaporCloud(AirParcel const& qfrac,
     Real s1 = xs / (1. - xs);
     Real rate = (s1 * xg - xv) / (1. + alpha * xg * lv * s1 / (1. - xs));
 
-    // condensate at most xv vapor
-    if (rate < 0.) {
-      rates[0] += -std::min(-rate, xv);
-      rates[1 + n] = std::min(-rate, xv);
-    }
+    if (xv >= 0.) {
+      // condensate at most xv vapor
+      if (rate < 0.) {
+        rates[0] += -std::min(-rate, xv);
+        rates[1 + n] = std::min(-rate, xv);
+      }
 
-    // evaporate at most xc cloud
-    if (rate > 0.) {
-      rates[0] += std::min(rate, xc);
-      rates[1 + n] = -std::min(rate, xc);
+      // evaporate at most xc cloud
+      if (rate > 0.) {
+        rates[0] += std::min(rate, xc);
+        rates[1 + n] = -std::min(rate, xc);
+      }
+    } else {
+      qfrac.w[i] = 0.;
+      // can't condense any more
+      if (rate < 0.) {
+        rates[0] = 0.;
+        rates[1 + n] = 0.;
+      }
+      // can still evaporate
+      else {
+        rates[0] += std::min(rate, xc);
+        rates[1 + n] = -std::min(rate, xc);
+      }
     }
   }
 
