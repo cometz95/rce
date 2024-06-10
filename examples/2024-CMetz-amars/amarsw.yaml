@@ -1,13 +1,18 @@
 opacity-sources:
-  - name: H2O
+  - name: H2O_B1
     class: Hitran
-    data: amars-ktable.nc
+    data: amars-cktable_B1.nc
     dependent-species: [vapor.H2O]
 
   - name: CO2
     class: Hitran
-    data: amars-ktable.nc
+    data: amars-cktable_B2.nc
     dependent-species: [vapor.dry]
+
+  - name: H2O_B3
+    class: Hitran
+    data: amars-cktable_B3.nc
+    dependent-species: [vapor.H2O]
 
   - name: cloud
     class: SimpleCloud
@@ -18,9 +23,9 @@ bands: [B1, B2, B3]
 
 B1:
   units: cm-1
-  grid-type: regular
+  grid-type: cktable
   wavenumber-range: [1., 500.]
-  opacity: [H2O,CO2]
+  opacity: [H2O_B1]
   resolution: 0.1
   rt-solver: Disort
   flags: [thermal_emission]
@@ -28,20 +33,20 @@ B1:
 
 B2:
   units: cm-1
-  grid-type: regular
+  grid-type: cktable
   resolution: 0.1
   wavenumber-range: [500., 1200.]
-  opacity: [H2O,CO2]
+  opacity: [CO2]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01
 
 B3:
   units: cm-1
-  grid-type: regular
+  grid-type: cktable
   resolution: 0.1
   wavenumber-range: [1200., 2000.]
-  opacity: [H2O,CO2]
+  opacity: [H2O_B3]
   rt-solver: Disort
   flags: [thermal_emission]
   albedo: 0.01

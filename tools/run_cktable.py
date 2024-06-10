@@ -239,8 +239,22 @@ class HitranCorrelatedKtable(CorrelatedKtable):
 
 if __name__ == "__main__":
     wmin = 1.0
-    wmax = 100.0
+    wmax = 500.0
     h2o = HitranCorrelatedKtable("H2O")
     h2o.load_opacity("amars-kcoeff_B1.nc")
     h2o.make_cktable(wmin, wmax)
     h2o.write_opacity("amars-cktable_B1.nc")
+
+    wmin = 500.0
+    wmax = 1200.0
+    h2o = HitranCorrelatedKtable("CO2")
+    h2o.load_opacity("amars-kcoeff_B2.nc")
+    h2o.make_cktable(wmin, wmax)
+    h2o.write_opacity("amars-cktable_B2.nc")
+
+    wmin = 500.0
+    wmax = 2000.0
+    h2o = HitranCorrelatedKtable("H2O")
+    h2o.load_opacity("amars-kcoeff_B3.nc")
+    h2o.make_cktable(wmin, wmax)
+    h2o.write_opacity("amars-cktable_B3.nc")

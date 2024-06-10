@@ -113,10 +113,10 @@ HJ.equinox    = 0.
 
 #Sun.spec_file = ../src/radiation/spectra/sun.spec
 
-#<radiation>
-#dt            = 40.
-#radiation_config = amarsw.yaml
-#nstr          = 4
+<radiation>
+dt            = 40.
+radiation_config = amarsw.yaml
+nstr          = 4
 
 <problem>
 P0            = 0.5E5
