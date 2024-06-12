@@ -24,7 +24,11 @@
 #include <climath/core.h>
 #include <climath/interpolation.h>
 
+// microphysics
+#include <microphysics/microphysics.hpp>
+
 // snap
+#include <snap/thermodynamics/calc_surf_evaporation_rates.cpp>
 #include <snap/thermodynamics/thermodynamics.hpp>
 
 // harp
@@ -50,6 +54,8 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   }
   SetUserOutputVariableName(4 + NVAPOR, "btemp");
   SetUserOutputVariableName(4 + NVAPOR + 1, "accumPrecipH2O");
+  // for now, amd is a scalar and associated with one phase. later, make amd[n]
+  // for each phase
   SetUserOutputVariableName(4 + NVAPOR + 2, "lH2Oamd");
   SetUserOutputVariableName(4 + NVAPOR + 3, "sH2Oamd");
   SetUserOutputVariableName(4 + NVAPOR + 4, "lH2Ogel");
@@ -69,7 +75,7 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
     ruser_meshblock_data[1](j) = 230;
     ruser_meshblock_data[2](j) = 0;
     ruser_meshblock_data[3](j) = 0;
-    ruser_meshblock_data[4](j) = 0;
+    ruser_meshblock_data[4](j) = 100;
     ruser_meshblock_data[5](j) = 0;
     ruser_meshblock_data[6](j) = 0;
   }
@@ -103,7 +109,6 @@ void MeshBlock::UserWorkInLoop() {
   auto pthermo = Thermodynamics::GetInstance();
   double rholH2O = 1000;
   double rhosH2O = 910;
-  double rhoatm;
   double dz = pcoord->x1f(is + 1) - pcoord->x1f(is);
   int iSkim;
 
@@ -127,9 +132,6 @@ void MeshBlock::UserWorkInLoop() {
     else
       H2OisLiquid = false;
 
-    rhoatm =
-        (this->phydro->w(IPR, ks, j, is) * pthermo->GetMu(this, ks, j, is)) /
-        (Constants::Rgas * this->phydro->w(IDN, ks, j, is));
     // only skim off the first layer of precip
     iSkim = is;
     for (int i = is; i <= iSkim; ++i) {
@@ -139,18 +141,50 @@ void MeshBlock::UserWorkInLoop() {
         this->pscalars->r(n, ks, j, i) = 0;
         if (n == 1) {
           if (H2OisLiquid)
-            lH2Oamd(js) += precip * rhoatm * dz;
+            lH2Oamd(j) += precip * this->phydro->w(IDN, ks, j, is) * dz;
           else
-            sH2Oamd(js) += precip * rhoatm * dz;
+            sH2Oamd(j) += precip * this->phydro->w(IDN, ks, j, is) * dz;
           accumPrecipH2O(j) += precip;
         }
       }
     }
-  }
-  lH2Oamd(js) = lH2Oamd(js) / (je - js);
-  sH2Oamd(js) = sH2Oamd(js) / (je - js);
-  lH2Ogel(js) = lH2Oamd(js) / rholH2O;
-  sH2Ogel(js) = sH2Oamd(js) / rhosH2O;
+
+    // get the current air parcel
+    AirParcel air(AirParcel::Type::MoleFrac);
+#pragma omp simd
+    for (int n = 0; n < NHYDRO; ++n) air.w[n] = this->phydro->w(n, ks, j, is);
+#pragma omp simd
+    for (int n = 0; n < NCLOUD; ++n)
+      air.c[n] = this->pimpl->pmicro->u(n, ks, j, is);
+
+    Real Mbar = pthermo->GetMu(this, ks, j, is);
+    // make sure air has T in IDN slot
+    air.w[IDN] = (air.w[IPR] * Mbar) / (air.w[IDN] * Constants::Rgas);
+
+    for (int i = 1; i <= NVAPOR; ++i) {
+      std::vector<Real> rates(1 + pthermo->GetCloudIndexSet(i).size(), 0.);
+      //(cmetz) check this value of CDE, see Hartmann pg 117
+      rates = pthermo->CalcSurfEvapRates(air, i, lH2Oamd(j), ts(j), dTs, cSurf,
+                                         dt, 3e-3, Mbar);
+      std::cout << "liquid rates: " << rates[0] << std::endl;
+      lH2Oamd(j) += -rates[0];
+      this->phydro->w(i, ks, j, is) += rates[0] * (Mbar / pthermo->GetMu(i)) /
+                                       (this->phydro->w(IDN, ks, j, is) * dz);
+      if (this->phydro->w(i, ks, j, is) < 0) this->phydro->w(i, ks, j, is) = 0;
+
+      rates = pthermo->CalcSurfEvapRates(air, i, sH2Oamd(j), ts(j), dTs, cSurf,
+                                         dt, 3e-3, Mbar);
+      std::cout << "solid rates: " << rates[0] << std::endl;
+      sH2Oamd(js) += -rates[0];
+      this->phydro->w(i, ks, j, is) += rates[0] * (Mbar / pthermo->GetMu(i)) /
+                                       (this->phydro->w(IDN, ks, j, is) * dz);
+      if (this->phydro->w(i, ks, j, is) < 0) this->phydro->w(i, ks, j, is) = 0;
+    }
+
+    lH2Ogel(j) = lH2Oamd(j) / rholH2O;
+    sH2Ogel(j) = sH2Oamd(j) / rhosH2O;
+
+  }  // end j loop
 }
 
 // void Mesh::UserWorkAfterLoop(ParameterInput *pin) {
@@ -202,10 +236,10 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
         user_out_var(4 + NVAPOR, k, j, i) = ruser_meshblock_data[1](j);
         user_out_var(4 + NVAPOR + 1, k, j, i) = ruser_meshblock_data[2](j);
 
-        user_out_var(4 + NVAPOR + 2, k, j, i) = ruser_meshblock_data[3](js);
-        user_out_var(4 + NVAPOR + 3, k, j, i) = ruser_meshblock_data[4](js);
-        user_out_var(4 + NVAPOR + 4, k, j, i) = ruser_meshblock_data[5](js);
-        user_out_var(4 + NVAPOR + 5, k, j, i) = ruser_meshblock_data[6](js);
+        user_out_var(4 + NVAPOR + 2, k, j, i) = ruser_meshblock_data[3](j);
+        user_out_var(4 + NVAPOR + 3, k, j, i) = ruser_meshblock_data[4](j);
+        user_out_var(4 + NVAPOR + 4, k, j, i) = ruser_meshblock_data[5](j);
+        user_out_var(4 + NVAPOR + 5, k, j, i) = ruser_meshblock_data[6](j);
       }
 }
 
