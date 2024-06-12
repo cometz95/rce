@@ -1,47 +1,51 @@
 #! /usr/bin/env python3
-import sys, os
+import sys
 
 sys.path.append("../python")
 sys.path.append(".")
 
-from canoe import def_species, load_configure, find_resource
+from canoe import load_configure, find_resource
 from canoe.harp import radiation_band
 from atm_profile_utils import read_atm_profile, get_species_names
 from netCDF4 import Dataset
-from numpy import *
+from multiprocessing import Pool, cpu_count
+from typing import Tuple
 from rfmlib import *
 
+def run_ktable_one_band(bname: str):
+    band = radiation_band(bname, config)
+
+    nspec = band.get_num_specgrids()
+    wmin, wmax = band.get_range()
+    wres = (wmax - wmin) / (nspec - 1)
+
+    # atmospheric properties
+    num_layers = len(atm["HGT"])
+    wav_grid = (wmin, wmax, wres)
+
+    species = list(map(str, config[bname]["opacity"]))
+    driver = create_rfm_driver(wav_grid, tem_grid, species, hitran_file)
+
+    # write rfm atmosphere file to file
+    write_rfm_atm(atm, rundir = bname)
+    write_rfm_drv(driver, rundir = bname)
+
+    # run rfm and write kcoeff file
+    pwd = os.getcwd()
+    run_rfm(rundir = bname)
+    write_ktable(opacity_output + "-" + bname, species, atm, wav_grid, tem_grid, basedir = pwd)
+
 if __name__ == "__main__":
+    atm_profile     = "amarsw.atm"
+    opacity_config  = "amarsw-lbl.yaml"
+    opacity_output  = "amarsw-lbl"
+    tem_grid        = (5, -50, 50)
+    max_threads     = cpu_count()
+
     hitran_file = find_resource("HITRAN2020.par")
-    species = ['H2O']
-    wghts = [18.]
-    atm = read_atm_profile("amarsw-main.nc", species, wghts)
+    atm = read_atm_profile(atm_profile)
+    config = load_configure(opacity_config)
 
-    config = load_configure("amarsw.yaml")
-    def_species(vapors=species)
-
-    for i in range(8):
-        band = radiation_band(str(config["bands"][i]), config)
-
-        nspec = band.get_num_specgrids()
-        wmin, wmax = band.get_range()
-        wres = (wmax - wmin) / (nspec - 1)
-
-        # atmospheric properties
-        num_layers = 128
-        wav_grid = (wmin, wmax, wres)
-        tem_grid = (5, -50, 50)
-
-        driver = create_rfm_driver(wav_grid, tem_grid, species, hitran_file)
-
-        # write rfm atmosphere file to file
-        write_rfm_atm(atm)
-        write_rfm_drv(driver)
-
-        # run rfm and write kcoeff file
-        run_rfm()
-
-        fname = band.get_absorber_by_name("H2O").get_opacity_file()
-        base_name = os.path.basename(fname)
-        fname, _ = os.path.splitext(base_name)
-        write_ktable(fname + "_B" + str(i + 1), species, atm, wav_grid, tem_grid)
+    pool = Pool(max_threads)
+    bnames = list(map(str, config["bands"]))
+    pool.map(run_ktable_one_band, bnames)

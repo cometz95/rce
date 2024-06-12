@@ -63,7 +63,8 @@ def parse_column_name(col_name: str) -> Tuple[str, Optional[str]]:
         unit = None
     return name, unit
 
-def read_atm_profile_nc(filename: str, species: List[str], wght: List[float]) -> Dict[str, np.ndarray]:
+def read_atm_profile_nc(filename: str, dry_air_name: Optional[str],
+                        vapors: List[str], wghts: List[float]) -> Dict[str, np.ndarray]:
     """
     Read an atmospheric profile from a netCDF file.
 
@@ -71,10 +72,12 @@ def read_atm_profile_nc(filename: str, species: List[str], wght: List[float]) ->
     -----------
     filename: str
         The name of the netCDF file to read.
-    species: List[str]
-        A list of species names to read from the file.
-    wght: List[float]
-        A list of molecular weights for the species in g/mol.
+    dry_air_name: Optional[str]
+        The name of the dry air species.
+    vapors: List[str]
+        A list of vapor names to read from the file.
+    wghts: List[float]
+        A list of molecular weights for all species (except for the dry air) in g/mol.
 
     Returns:
     --------
@@ -82,13 +85,7 @@ def read_atm_profile_nc(filename: str, species: List[str], wght: List[float]) ->
         A dictionary containing the atmospheric profile
     """
 
-    if species is None:
-        raise ValueError("Species names must be provided.")
-
-    if wght is None:
-        raise ValueError("Molecular weights must be provided.")
-
-    if len(species) != len(wght):
+    if len(vapors) != len(wghts):
         raise ValueError("The number of species names and molecular weights must be the same.")
 
     data = Dataset(filename, 'r')
@@ -100,7 +97,7 @@ def read_atm_profile_nc(filename: str, species: List[str], wght: List[float]) ->
     atm["IDX"] = np.arange(data.dimensions["x1"].size) + 1
 
     # altitude in m
-    atm["ALT"] = data["x1"][:]
+    atm["HGT"] = data["x1"][:]
 
     # pressure in Pa
     atm["PRE"] = data["press"][0, :, 0, 0]
@@ -111,12 +108,21 @@ def read_atm_profile_nc(filename: str, species: List[str], wght: List[float]) ->
     # mean molecular weight in kg/mol
     mmw = data["rho"][0, :, 0, 0] * __Constants.kRgas * atm["TEM"] / atm["PRE"]
 
+    # mole fraction of dry air
+    dry_mf = np.ones(atm["HGT"].shape)
+
     # mole fractions
-    if len(species) == 1:
-        atm[species[0]] = data["vapor"][0, :, 0, 0] / wght[0] * mmw
+    if len(vapors) == 1:
+        atm[vapors[0]] = data["vapor"][0, :, 0, 0] / wght[0] * mmw
+        dry_mf -= atm[vapors[0]]
     else:
-        for i, spec in enumerate(species):
+        for i, spec in enumerate(vapors):
             atm[spec] = data["vapor"+str(i+1)][0, :, 0, 0] / wght[i] * mmw
+            dry_mf -= atm[spec]
+
+    # dry air species
+    if dry_air_name is not None:
+        atm[dry_air_name] = dry_mf
 
     return atm
 
@@ -142,7 +148,7 @@ def read_atm_profile_txt(filename: str) -> Dict[str, np.ndarray]:
     # Read the file
     with open(filename, 'r') as f:
         lines = f.readlines()
-    
+
     # Process the header
     header = None
     for j, line in enumerate(lines):
@@ -159,38 +165,48 @@ def read_atm_profile_txt(filename: str) -> Dict[str, np.ndarray]:
         else:
             break
 
+    header = []
+    # Process the data
+    for line in lines[j:]:
+        if line.startswith('#'):
+            continue
+        values = line.strip().split()
+
+        if len(header) == 0:
+            header = values.copy()
+            continue
+
+        for i, value in enumerate(values):
+            name, unit = parse_column_name(header[i])
+
+            # default unit for HGT is km
+            if name == 'IDX':
+                unit = '1'
+            elif name == 'HGT' and unit is None:
+                unit = 'km'
+            elif name == 'PRE' and unit is None:
+                unit = 'mbar'
+            elif name == 'TEM' and unit is None:
+                unit = 'K'
+            elif unit is None:
+                unit = 'ppmv'
+
+            if name in data:
+                data[name].append(float(value) * __Constants.kUnitConversions.get(unit, 1))
+            else:
+                data[name] = [float(value) * __Constants.kUnitConversions.get(unit, 1)]
+
     if 'IDX' not in data:
         raise ValueError("Missing required column: IDX")
 
-    if 'ALT' not in data:
-        raise ValueError("Missing required column: ALT")
+    if 'HGT' not in data:
+        raise ValueError("Missing required column: HGT")
 
     if 'PRE' not in data:
         raise ValueError("Missing required column: PRE")
 
     if 'TEM' not in data:
         raise ValueError("Missing required column: TEM")
-
-    # Process the data
-    for line in lines[j:]:
-        if line.startswith('#'):
-            continue
-        values = line.strip().split()
-        for i, value in enumerate(values):
-            name, unit = parse_column_name(header[i])
-            if name in data:
-                # default unit for ALT is km
-                if name == 'IDX':
-                    unit = '1'
-                elif name == 'ALT' and unit is None:
-                    unit = 'km'
-                elif name == 'PRE' and unit is None:
-                    unit = 'mbar'
-                elif name == 'TEM' and unit is None:
-                    unit = 'K'
-                elif unit is None:
-                    unit = 'ppmv'
-                data[name].append(float(value) * __Constants.kUnitConversions.get(unit, 1))
 
     # Convert lists to numpy arrays
     for key in data:
@@ -203,7 +219,7 @@ def read_atm_profile_txt(filename: str) -> Dict[str, np.ndarray]:
 
 def write_atm_profile(data: Dict[str, np.ndarray], filename: str, 
                       units: List[str] = ['m', 'pa'],
-                      comment: Optional[str] =None) -> None:
+                      comment: Optional[str] = None) -> None:
     """
     Write an atmospheric profile to a text file.
 
@@ -236,7 +252,7 @@ def write_atm_profile(data: Dict[str, np.ndarray], filename: str,
         for key in data.keys():
             if key == 'IDX':
                 headers.append(f"{key}".ljust(6))
-            elif key == 'ALT':
+            elif key == 'HGT':
                 headers.append(f"{key}[{units[0]}]".ljust(11))
             elif key == 'PRE':
                 headers.append(f"{key}[{units[1]}]".ljust(11))
@@ -251,7 +267,7 @@ def write_atm_profile(data: Dict[str, np.ndarray], filename: str,
         for i in range(num_rows):
             row = []
             for key in data.keys():
-                if key == 'ALT':
+                if key == 'HGT':
                     value = data[key][i] / __Constants.kUnitConversions.get(units[0], 1)
                 elif key == 'PRE':
                     value = data[key][i] / __Constants.kUnitConversions.get(units[1], 1)
@@ -270,8 +286,8 @@ def write_atm_profile(data: Dict[str, np.ndarray], filename: str,
             f.write(" ".join(row) + "\n")
     print(f"Atmosphere profile written to {filename}")
 
-def read_atm_profile(filename: str, species: Optional[List[str]] = None, wght:
-                     Optional[List[float]] = None) -> Dict[str, np.ndarray]:
+def read_atm_profile(filename: str, dry_air_name: Optional[str] = None, 
+                     vapors: List[str] = [], wghts: List[float] = []) -> Dict[str, np.ndarray]:
     """
     Read an atmospheric profile from a file.
 
@@ -300,7 +316,7 @@ def read_atm_profile(filename: str, species: Optional[List[str]] = None, wght:
     if extension == '.atm' or extension == '.txt':
         data = read_atm_profile_txt(filename)
     elif extension == '.nc':
-        data = read_atm_profile_nc(filename, species, wght)
+        data = read_atm_profile_nc(filename, dry_air_name, vapors, wghts)
     return data
 
 def get_species_names(atm: Dict[str, np.ndarray]) -> List[str]:
@@ -319,7 +335,7 @@ def get_species_names(atm: Dict[str, np.ndarray]) -> List[str]:
     """
     species = []
     for key in atm.keys():
-        if key not in ['IDX', 'ALT', 'PRE', 'TEM']:
+        if key not in ['IDX', 'HGT', 'PRE', 'TEM']:
             species.append(key)
     return species
 
@@ -347,13 +363,21 @@ if __name__ == "__main__":
                         help="A list of vapor names to read from the file, sperated by comma.")
     parser.add_argument('-w', '--wght', required=False,
                         help="A list of molecular weights in g/mol for the vapors, seperated by comma.")
+    parser.add_argument('-d', '--dry', required=False,
+                        help="name of the dry air species")
     args = vars(parser.parse_args())
 
-    if args["vapor"] is not None:
-        species = args["vapor"].split(',')
-        print("Species:", species)
+    if args["dry"] is not None:
+        dry = args["dry"]
+        print("Dry air species:", dry)
     else:
-        species = None
+        dry = None
+
+    if args["vapor"] is not None:
+        vapor = args["vapor"].split(',')
+        print("Vapors:", vapor)
+    else:
+        vapor = None
 
     if args["wght"] is not None:
         # g/mol to kg/mol
@@ -366,7 +390,7 @@ if __name__ == "__main__":
     if len(units) != 3:
         raise ValueError("The number of unit strings must be 3, e.g., km,pa,1")
     
-    data = read_atm_profile(args["input"], species, wght)
+    data = read_atm_profile(args["input"], dry_air_name = dry, vapors = vapor, wghts = wght)
 
     if args["output"]:
         comment = "Command: " + get_command_string()
