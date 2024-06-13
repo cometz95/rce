@@ -194,8 +194,9 @@ void init_athena(py::module &parent) {
                                                  pmax);
            })
 
-      .def(
-          "get_rad",
+      //.def("modify_atm", &modify_atmosphere)
+
+      .def("get_rad",
           [](MeshBlock &mesh_block) { return mesh_block.pimpl->prad; },
           py::return_value_policy::reference);
 
