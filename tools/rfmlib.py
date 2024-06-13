@@ -130,15 +130,16 @@ def run_rfm(rundir: str=".") -> None:
     if rundir != ".":
         os.chdir(os.path.join(pwd, rundir))
 
-    process = subprocess.Popen(
-        [f"{pwd}/rfm.release"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
+    with open(f"rfm.runlog", "w") as file:
+        process = subprocess.Popen(
+            [f"{pwd}/rfm.release"], stdout=file, stderr=subprocess.STDOUT
+        )
+        process.communicate()
 
-    for line in iter(process.stdout.readline, b""):
+    #for line in iter(process.stdout.readline, b""):
         # decode the byte string and end='' to avoid double newlines
-        print(line.decode(), end="")
+    #    print(line.decode(), end="")
 
-    process.communicate()
 
 def create_netcdf_input(
     fname: str,
