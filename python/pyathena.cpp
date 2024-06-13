@@ -182,19 +182,10 @@ void init_athena(py::module &parent) {
       //.def_readonly("inversion", [](MeshBlock const& pmb) {
       //  return pmb.pimpl->all_fits;
       //});
-      .def("modify_dlnTdlnP",
-           [](MeshBlock &mesh_block, Real adlnTdlnP, Real pmin, Real pmax) {
-             return modify_atmoshere_adlnTdlnP(&mesh_block, adlnTdlnP, pmin,
-                                               pmax);
-           })
-
-      .def("modify_dlnNH3dlnP",
-           [](MeshBlock &mesh_block, Real adlnNH3dlnP, Real pmin, Real pmax) {
-             return modify_atmoshere_adlnNH3dlnP(&mesh_block, adlnNH3dlnP, pmin,
-                                                 pmax);
-           })
-
-      //.def("modify_atm", &modify_atmosphere)
+      
+      .def("modify_dlnTdlnP", &modify_adlnTdlnP)
+      .def("modify_dlnXdlnP", &modify_adlnXdlnP)
+      .def("modify_atm", &modify_atm)
 
       .def("get_rad",
           [](MeshBlock &mesh_block) { return mesh_block.pimpl->prad; },
