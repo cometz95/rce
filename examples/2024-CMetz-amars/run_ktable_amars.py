@@ -39,7 +39,7 @@ if __name__ == "__main__":
     canoe.start()
 
     atm_profile     = "amarsw.atm"
-    opacity_config  = "amarsw-lbl.yaml"
+    opacity_config  = "amarsw-op.yaml"
     opacity_output  = "amarsw-lbl"
     tem_grid        = (5, -50, 50)
     max_threads     = cpu_count()

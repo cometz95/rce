@@ -10,20 +10,20 @@ bands: [B1, B2, B3]
 B1:
   units: cm-1
   grid-type: regular
-  wavenumber-range: [1., 100.]
+  wavenumber-range: [1., 500.]
   resolution: 0.1
   opacity: [H2O, CO2]
 
 B2:
   units: cm-1
   grid-type: regular
-  wavenumber-range: [100., 150.]
+  wavenumber-range: [500., 1200.]
   resolution: 0.1
   opacity: [H2O, CO2]
 
 B3:
   units: cm-1
   grid-type: regular
-  wavenumber-range: [150., 400.]
+  wavenumber-range: [1200., 2000.]
   resolution: 0.1
   opacity: [H2O, CO2]
