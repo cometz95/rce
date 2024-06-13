@@ -40,16 +40,14 @@ void init_harp(py::module &parent) {
           [](Radiation &rad, MeshBlock const *pmb) {
             for (int k = pmb->ks; k <= pmb->ke; ++k)
               for (int j = pmb->js; j <= pmb->je; ++j)
-                for (int i = pmb->is; i <= pmb->ie; ++i)
-                  rad.CalFlux(pmb, k, j, pmb->is, pmb->ie + 1);
+                rad.CalFlux(pmb, k, j, pmb->is, pmb->ie + 1);
           })
 
       .def("cal_radiance",
           [](Radiation &rad, MeshBlock const *pmb) {
             for (int k = pmb->ks; k <= pmb->ke; ++k)
               for (int j = pmb->js; j <= pmb->je; ++j)
-                for (int i = pmb->is; i <= pmb->ie; ++i)
-                  rad.CalRadiance(pmb, k, j);
+                rad.CalRadiance(pmb, k, j);
           });
 
   // RadiationBand

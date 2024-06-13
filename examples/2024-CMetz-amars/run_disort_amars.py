@@ -32,5 +32,6 @@ if __name__ == "__main__":
 
     rad.cal_flux(mb)
     x = np.array(rad.fluxup)
-    print(x)
-    print(x.shape)
+    y = np.array(rad.fluxup)
+    print(x.sum(axis = (0,)))
+    print(y.sum(axis = (0,)))

@@ -260,7 +260,6 @@ void RadiationBand::RTSolverDisort::CalBandFlux(MeshBlock const *pmb, int k,
     override_with_stellar_spectra = true;
   }
 
-  Real total_wght = 0;
   for (auto &spec : pmy_band_->pgrid_->spec) {
     if (override_with_stellar_spectra) {
       // stellar source function
@@ -283,13 +282,6 @@ void RadiationBand::RTSolverDisort::CalBandFlux(MeshBlock const *pmb, int k,
     if (pmb->pcoord != nullptr) {
       addDisortFlux(pmb->pcoord, b++, k, j, il, iu);
     }
-
-    total_wght += spec.wght;
-  }
-
-  for (int i = il; i <= iu; ++i) {
-    pmy_band_->bflxup(k, j, i) /= total_wght;
-    pmy_band_->bflxdn(k, j, i) /= total_wght;
   }
 }
 

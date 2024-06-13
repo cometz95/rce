@@ -48,6 +48,15 @@ RegularSpacingSpectralGrid::RegularSpacingSpectralGrid(YAML::Node const& my)
     throw NotFoundError("RegularSpacingSpectralGrid",
                         "either 'resolution' or 'num-bins' must be defined");
   }
+
+  // normalize weights to add up to 1
+  Real total_wght = 0;
+
+  for (int i = 0; i < num_bins; ++i)
+    total_wght += spec[i].wght;
+
+  for (int i = 0; i < num_bins; ++i)
+    spec[i].wght /= total_wght;
 }
 
 CustomSpacingSpectralGrid::CustomSpacingSpectralGrid(YAML::Node const& my)
@@ -78,5 +87,6 @@ CustomSpacingSpectralGrid::CustomSpacingSpectralGrid(YAML::Node const& my)
   }
 }
 
+// delayed setting weights
 CKTableSpectralGrid::CKTableSpectralGrid(YAML::Node const& my)
     : SpectralGridBase(my) {}
