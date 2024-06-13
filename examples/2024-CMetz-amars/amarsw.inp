@@ -115,7 +115,7 @@ HJ.equinox    = 0.
 
 <radiation>
 dt            = 40.
-radiation_config = amarsw-ck.yaml
+radiation_config = amarsw-lbl.yaml
 nstr          = 4
 
 <problem>
