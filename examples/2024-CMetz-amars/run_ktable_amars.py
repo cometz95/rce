@@ -4,10 +4,10 @@ import sys
 sys.path.append("../python")
 sys.path.append(".")
 
+import canoe
 from canoe import load_configure, find_resource
 from canoe.harp import radiation_band
-from atm_profile_utils import read_atm_profile, get_species_names
-from netCDF4 import Dataset
+from atm_profile_utils import read_atm_profile
 from multiprocessing import Pool, cpu_count
 from typing import Tuple
 from rfmlib import *
@@ -36,6 +36,8 @@ def run_ktable_one_band(bname: str):
     write_ktable(opacity_output + "-" + bname, species, atm, wav_grid, tem_grid, basedir = pwd)
 
 if __name__ == "__main__":
+    canoe.start()
+
     atm_profile     = "amarsw.atm"
     opacity_config  = "amarsw-lbl.yaml"
     opacity_output  = "amarsw-lbl"

@@ -81,7 +81,7 @@ vapor = H2O
 cloud = H2O(c), H2O(p)
 
 <chemistry>
-microphysics_config = amarsw.yaml
+microphysics_config = amarsw-mp.yaml
 
 <thermodynamics>
 Rd          = 189.
@@ -115,7 +115,7 @@ HJ.equinox    = 0.
 
 <radiation>
 dt            = 40.
-radiation_config = amarsw-rt.yaml
+radiation_config = amarsw-lbl.yaml
 nstr          = 4
 
 <problem>

@@ -1,6 +1,16 @@
 #! /usr/bin/env python3
+import sys
+
+sys.path.append("../python")
+sys.path.append(".")
+
+import canoe
+from canoe import load_configure
+from canoe.harp import radiation_band
 from netCDF4 import Dataset
 from scipy.interpolate import interp1d
+from multiprocessing import Pool, cpu_count
+from typing import List
 import numpy as np
 
 def get_gauss_legendre(n: int):
@@ -33,7 +43,7 @@ class CorrelatedKtable:
     name : str
         The name of the absorbing species
     """
-    def __init__(self, name: str):
+    def __init__(self, species: List[str]):
         """
         Initialize the class
 
@@ -42,7 +52,8 @@ class CorrelatedKtable:
         name : str
             The name of the absorbing species
         """
-        self.name = name
+        self.species = species
+        self.name = '-'.join(species)
 
     def load_opacity(self, fname: str) -> None:
         """
@@ -165,16 +176,17 @@ class CorrelatedKtable:
         dim.long_name = "reference temperature"
         dim.units = "K"
 
-        ncfile.createDimension("TempGrid", self.kcoeff.shape[2])
+        ncfile.createDimension("TempGrid", len(self.temp_grid))
         dim = ncfile.createVariable("TempGrid", "f8", ("TempGrid",))
         dim[:] = self.temp_grid
         dim.long_name = "temperature anomaly grid"
         dim.units = "K"
 
-        var = ncfile.createVariable(self.name, "f8", ("Wavenumber", "Pressure", "TempGrid"))
-        var[:] = self.ckcoeff
-        var.long_name = "correlated k-coefficients"
-        var.units = self.kunits
+        for name in self.species:
+            var = ncfile.createVariable(name, "f8", ("Wavenumber", "Pressure", "TempGrid"))
+            var[:] = self.ckcoeff[name]
+            var.long_name = "correlated k-coefficients"
+            var.units = self.kunits[name]
 
         ncfile.close()
         print("Correlated k-table written to", fname)
@@ -193,8 +205,12 @@ class HitranCorrelatedKtable(CorrelatedKtable):
             The name of the file
         """
         data = Dataset(fname, "r")
-        self.kcoeff = data.variables[self.name][:]
-        self.kunits = data.variables[self.name].units
+        self.kcoeff = {}
+        self.kunits = {}
+
+        for name in self.species:
+            self.kcoeff[name] = data.variables[name][:]
+            self.kunits[name] = data.variables[name].units
         self.pres = data.variables["Pressure"][:]
         self.temp = data.variables["Temperature"][:]
         self.temp_grid = data.variables["TempGrid"][:]
@@ -212,17 +228,35 @@ class HitranCorrelatedKtable(CorrelatedKtable):
         npoints : int
             The number of points in each bin
         """
-        nlayer = self.kcoeff.shape[1]
-        ntemp = self.kcoeff.shape[2]
-        self.ckcoeff = np.zeros((nbins * npoints, nlayer, ntemp))
-        for i in range(ntemp):
-            self.ckcoeff[:, :, i] = self.make_ck_coeff(self.kcoeff[:,:,i], nlayer // 2, nbins, npoints)
+        nlayer = len(self.pres)
+        ntemp = len(self.temp_grid)
+
+        self.ckcoeff = {}
+        for name in self.species:
+            self.ckcoeff[name] = np.zeros((nbins * npoints, nlayer, ntemp))
+            for i in range(ntemp):
+                self.ckcoeff[name][:, :, i] = self.make_ck_coeff(self.kcoeff[name][:,:,i], nlayer // 2, nbins, npoints)
         self.wave = wmin + self.gaxis * (wmax - wmin)
 
+def run_cktable_one_band(bname: str):
+    band = radiation_band(bname, config)
+
+    species = list(map(str, config[bname]["opacity"]))
+    wmin, wmax = band.get_range()
+    ab_ck = HitranCorrelatedKtable(species)
+    ab_ck.load_opacity(opacity_input + "-" + bname + ".nc")
+    ab_ck.make_cktable(wmin, wmax)
+    ab_ck.write_opacity(opacity_output + "-" + bname + ".nc")
+
 if __name__ == "__main__":
-    wmin = 1.
-    wmax = 100.
-    h2o = HitranCorrelatedKtable("H2O")
-    h2o.load_opacity("amars-kcoeff_B1.nc")
-    h2o.make_cktable(wmin, wmax)
-    h2o.write_opacity("amars-cktable_B1.nc")
+    canoe.start()
+
+    opacity_input   = "amarsw-lbl"
+    opacity_output  = "amarsw-ck"
+    opacity_config  = "amarsw-op.yaml"
+    max_threads     = cpu_count()
+
+    config = load_configure(opacity_config)
+    pool = Pool(max_threads)
+    bnames = list(map(str, config["bands"]))
+    pool.map(run_cktable_one_band, bnames)
