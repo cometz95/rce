@@ -49,12 +49,17 @@ std::string find_resource(const std::string &filename) {
 auto cleanup = []() {
   IndexMap::Destroy();
   Thermodynamics::Destroy();
+  Application::Destroy();
 };
 
 PYBIND11_MODULE(canoe, m) {
   m.attr("__name__") = "canoe";
   m.doc() = "Python bindings for canoe";
   m.add_object("_cleanup", py::capsule(cleanup));
+
+  m.def("start", []() {
+        Application::Start(0, nullptr);
+      });
 
   m.def("def_species", &def_species, py::arg("vapors"),
         py::arg("clouds") = std::vector<std::string>(),
