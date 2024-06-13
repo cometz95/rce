@@ -170,17 +170,16 @@ class CorrelatedKtable:
         dim.long_name = "reference pressure"
         dim.units = "pa"
 
-        ncfile.createDimension("Temperature", len(self.temp))
-        dim = ncfile.createVariable("Temperature", "f8", ("Temperature",))
-        dim[:] = self.temp
-        dim.long_name = "reference temperature"
-        dim.units = "K"
-
         ncfile.createDimension("TempGrid", len(self.temp_grid))
         dim = ncfile.createVariable("TempGrid", "f8", ("TempGrid",))
         dim[:] = self.temp_grid
         dim.long_name = "temperature anomaly grid"
         dim.units = "K"
+
+        var = ncfile.createVariable("Temperature", "f8", ("Pressure"))
+        var[:] = self.temp
+        var.long_name = "reference temperature"
+        var.units = "K"
 
         for name in self.species:
             var = ncfile.createVariable(name, "f8", ("Wavenumber", "Pressure", "TempGrid"))
