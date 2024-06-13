@@ -19,7 +19,7 @@ opacity-sources:
     dependent-species: [cloud.H2O(c), cloud.H2O(p)]
     parameters: {qext: 1., ssa: 0.01, asymf: 0.01}
 
-bands: [B1, B2, B3]
+bands: [B1]
 
 B1:
   units: cm-1

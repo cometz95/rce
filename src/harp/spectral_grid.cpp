@@ -32,12 +32,15 @@ RegularSpacingSpectralGrid::RegularSpacingSpectralGrid(YAML::Node const& my)
     num_bins = static_cast<int>((wmax - wmin) / dwave) + 1;
     spec.resize(num_bins);
     for (int i = 0; i < num_bins; ++i) {
+      //(cmetz) wav1 = wav2, will this cause cdisort planck function to return
+      // wrong units? yet somehow we get the right flux value with LBL and  new
+      // weight fix
       spec[i].wav1 = spec[i].wav2 = wmin + dwave * i;
       spec[i].wght = (i == 0) || (i == num_bins - 1) ? 0.5 * dwave : dwave;
     }
   } else if (my["num-bins"]) {
-    Real dwave = static_cast<Real>(1. * (wmax - wmin) / num_bins);
     num_bins = my["num-bins"].as<int>();
+    Real dwave = static_cast<Real>(1. * (wmax - wmin) / num_bins);
     spec.resize(num_bins);
     for (int i = 0; i < num_bins; ++i) {
       spec[i].wav1 = wmin + dwave * i;
