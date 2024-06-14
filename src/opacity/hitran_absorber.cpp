@@ -191,8 +191,8 @@ void HitranAbsorberCK::ModifySpectralGrid(
   spec.resize(weights_.size());
 
   for (size_t i = 0; i < weights_.size(); ++i) {
-    spec[i].wav1 = axis_[len_[0] + len_[1] + i];
-    spec[i].wav2 = axis_[len_[0] + len_[1] + i];
+    spec[i].wav1 = axis_[i];
+    spec[i].wav2 = axis_[i];
     spec[i].wght = weights_[i];
   }
 }
