@@ -28,7 +28,7 @@
 #include <microphysics/microphysics.hpp>
 
 // snap
-#include <snap/thermodynamics/calc_surf_evaporation_rates.cpp>
+// #include <snap/thermodynamics/calc_surf_evaporation_rates.cpp>
 #include <snap/thermodynamics/thermodynamics.hpp>
 
 // harp
