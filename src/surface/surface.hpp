@@ -19,25 +19,14 @@ class ParameterInput;
 class Surface : public ParameterGroup {
  public:
   // functions
-  Surface() {}
-  virtual ~Surface() {}
+  Surface(MeshBlock *pmb, ParameterInput *pin){};
+  ~Surface(){};
 
-  virtual void Initialize(MeshBlock *pmb) {}
-
-  virtual size_t RestartDataSizeInBytes() const { return 0; }
-  virtual size_t DumpRestartData(char *pdst) const { return 0; }
-  virtual size_t LoadRestartData(char *psrc) { return 0; }
-
-  virtual void Apply(AthenaArray<Real> &du, MeshBlock *pmb, Real time,
-                     Real dt) = 0;
+  size_t RestartDataSizeInBytes() const { return 0; }
+  size_t DumpRestartData(char *pdst) const { return 0; }
+  size_t LoadRestartData(char *psrc) { return 0; }
 };
 
 using SurfacePtr = std::shared_ptr<Surface>;
-using SurfaceContainer = std::vector<SurfacePtr>;
-
-class SurfaceFactory {
- public:
-  static SurfaceContainer CreateFrom(MeshBlock *pmb, ParameterInput *pin);
-};
 
 #endif  // SRC_SURFACE_SURFACE_HPP_
