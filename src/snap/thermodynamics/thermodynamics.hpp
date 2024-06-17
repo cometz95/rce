@@ -215,10 +215,6 @@ class Thermodynamics {
     return GetLatentHeatMole(i, rates, temp) * inv_mu_[i];
   }
 
-  RealArrayX CalcSurfEvapRates(AirParcel const &qfrac, int i, Real &amd,
-                               Real btemp, Real dTs, Real cSurf, Real dt,
-                               Real Cde, Real Mbar) const;
-
   //! \brief Calculate the equilibrium mole transfer by cloud reaction
   //! vapor -> cloud
   //!
@@ -347,6 +343,8 @@ class Thermodynamics {
   //! $  = \gamma_d/(\gamma_d - 1.)*R_d*T*(1 + \sum_i (q_i*(\hat{c}_{pi}
   //! - 1.)))$
   Real GetEnthalpyMass(MeshBlock const *pmb, int k, int j, int i) const;
+
+  SVPFunc1Container GetSVPFunc1() const { return svp_func1_; }
 
   //! \brief Moist static energy
   //!

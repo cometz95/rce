@@ -36,7 +36,7 @@ dt          = 1.E2
 
 <time>
 cfl_number  = 0.9           # The Courant, Friedrichs, & Lewy (CFL) Number
-nlim        = 1            # cycle limit
+nlim        = -1            # cycle limit
 tlim        = 1.E7         # time limit
 xorder      = 5             # horizontal reconstruction order
 integrator  = rk3           # integration method
@@ -61,9 +61,9 @@ ix3_bc      = periodic    # Inner-X3 boundary condition flag
 ox3_bc      = periodic    # Outer-X3 boundary condition flag
 
 #<meshblock>
-#nx1         = 128
-#nx2         = 16
-#nx3         = 1
+nx1         = 128
+nx2         = 16
+nx3         = 1
 
 <hydro>
 gamma           = 1.66    # gamma = C_p/C_v general, for Argon gamma = 1.6597
@@ -117,6 +117,18 @@ HJ.equinox    = 0.
 dt            = 40.
 radiation_config = amarsw-ck.yaml
 nstr          = 4
+
+<surface>
+csurf = 100000.
+rhosH2O = 910.
+rholH2O = 1000.
+alpha_s = 0.3
+alpha_a = 0.5
+omega = 0.00007094828
+s0 = 410.428151577
+init_btemp = 230.
+init_amd_s_vapor1 = 100.
+init_amd_l_vapor1 = 0.
 
 <problem>
 P0            = 0.5E5
