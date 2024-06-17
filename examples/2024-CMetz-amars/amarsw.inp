@@ -48,7 +48,7 @@ x1max       = 20.E3         # maximum value of X1
 ix1_bc      = reflecting    # inner-X1 boundary flag
 ox1_bc      = reflecting    # outer-X1 boundary flag
 
-nx2         = 1            # Number of zones in X2-direction
+nx2         = 128            # Number of zones in X2-direction
 x2min       = 0            # minimum value of X2
 x2max       = 64.E3        # maximum value of X2
 ix2_bc      = periodic      # Inner-X2 boundary condition flag
@@ -60,7 +60,7 @@ x3max       = 0.5         # maximum value of X3
 ix3_bc      = periodic    # Inner-X3 boundary condition flag
 ox3_bc      = periodic    # Outer-X3 boundary condition flag
 
-#<meshblock>
+<meshblock>
 nx1         = 128
 nx2         = 16
 nx3         = 1
