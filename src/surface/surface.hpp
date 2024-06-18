@@ -35,12 +35,13 @@ class Surface : public ParameterGroup {
   // calculates precipitates evaporation rates
   //  FIXME (cmetz) pass in the amd arrays, not just one amd(j) value
   RealArrayX CalcSurfEvapRates(AirParcel const &qfrac, int i, Real &amd_x,
-                               Real btemp, Real dTs, Real cSurf, Real dt,
-                               Real Cde, Real Mbar) const;
+                               Real btemp, Real cSurf, Real dt, Real Cde,
+                               Real Mbar) const;
 
-  Real ChangeTempFromForcing(MeshBlock *pmb, int j, Real dt);
-  void AccumulatePrecipitates(MeshBlock *pmb, int iSkim, int j);
-  void EvapPrecip(MeshBlock *pmb, int j, double dTs, Real dt);
+  Real ChangeTempFromForcing(MeshBlock *pmb, int j, Real dt,
+                             Real accumPrecipAmd, RealArrayX AmdEvap);
+  Real AccumulatePrecipitates(MeshBlock *pmb, int iSkim, int j);
+  RealArrayX EvapPrecip(MeshBlock *pmb, int j, Real dt);
 
   size_t RestartDataSizeInBytes() const { return 0; }
   size_t DumpRestartData(char *pdst) const { return 0; }

@@ -27,9 +27,8 @@
 
 // qfrac has T in IDN slot
 RealArrayX Surface::CalcSurfEvapRates(AirParcel const& qfrac, int i,
-                                      Real& amd_x, Real btemp, Real dTs,
-                                      Real cSurf, Real dt, Real Cde,
-                                      Real Mbar) const {
+                                      Real& amd_x, Real btemp, Real cSurf,
+                                      Real dt, Real Cde, Real Mbar) const {
   auto pthermo = Thermodynamics::GetInstance();
   Real xv = qfrac.w[i];
 

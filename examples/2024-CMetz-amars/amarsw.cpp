@@ -71,9 +71,11 @@ void MeshBlock::UserWorkInLoop() {
     // right now, the water hits surf and immediately heats to Tsurf, no energy
     // transfer water evaporates at surface and doesn't cool the surface
     Real dt = this->pmy_mesh->dt;
-    double dTs = this->pimpl->psurf->ChangeTempFromForcing(this, j, dt);
-    this->pimpl->psurf->AccumulatePrecipitates(this, is, j);
-    this->pimpl->psurf->EvapPrecip(this, j, dTs, dt);
+    Real accumPrecipAmd =
+        this->pimpl->psurf->AccumulatePrecipitates(this, is, j);
+    RealArrayX AmdEvap = this->pimpl->psurf->EvapPrecip(this, j, dt);
+    double dTs = this->pimpl->psurf->ChangeTempFromForcing(
+        this, j, dt, accumPrecipAmd, AmdEvap);
   }
 }
 
