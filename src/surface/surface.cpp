@@ -69,7 +69,7 @@ void Surface::DoSurfaceProcesses(MeshBlock *pmb) {
       Real accumPrecipAmd =
           pmb->pimpl->psurf->AccumulatePrecipitates(pmb, k, j, is);
       RealArrayX AmdEvap = pmb->pimpl->psurf->EvapPrecip(pmb, k, j, dt);
-      double dTs = pmb->pimpl->psurf->ChangeTempFromForcing(
+      Real dTs = pmb->pimpl->psurf->ChangeTempFromForcing(
           pmb, k, j, dt, accumPrecipAmd, AmdEvap);
     }
   }
@@ -77,11 +77,11 @@ void Surface::DoSurfaceProcesses(MeshBlock *pmb) {
 
 Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
                                     Real accumPrecipAmd, RealArrayX AmdEvap) {
-  double swin = s0 * (1 + std::sin(omega * time));
+  Real swin = s0 * (1 + std::sin(omega * time));
   auto pthermo = Thermodynamics::GetInstance();
 
   // get the flux from each band and add it up
-  double tot_fluxdn = 0;
+  Real tot_fluxdn = 0;
   int numBands = pmb->pimpl->prad->GetNumBands();
 
   for (int n = 0; n < numBands; ++n)
@@ -119,17 +119,17 @@ Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
   // leaving the surface
   Real evapCooling = (AmdEvap[0] * L + AmdEvap[1] * L) / dt;
 
-  double dTs = (swin * (1 - alpha_a) * (1 - alpha_s) + tot_fluxdn -
-                Constants::stefanBoltzmann * pow(btempArray(k, j), 4) -
-                evapCooling + dT_latent) *
-               (dt / cSurf);
+  Real dTs = (swin * (1 - alpha_a) * (1 - alpha_s) + tot_fluxdn -
+              Constants::stefanBoltzmann * pow(btempArray(k, j), 4) -
+              evapCooling + dT_latent) *
+             (dt / cSurf);
 
   btempArray(k, j) += dTs;
   return dTs;
 }
 
 Real Surface::AccumulatePrecipitates(MeshBlock *pmb, int k, int j, int iSkim) {
-  double precip = 0;
+  Real precip = 0;
   Real accumPrecipAmd = 0.;
 
   for (int i = is; i <= iSkim; ++i) {

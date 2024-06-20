@@ -237,6 +237,7 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
 
   // set the surface temperature from the user input variables
   // FIXME(cli)
+  // this shouldn't cause a seg fault because of short circuiting
   if (pmb->pimpl->psurf != nullptr && pmb->pimpl->psurf->hasSurface) {
     ds_.bc.btemp = pmb->pimpl->psurf->GetBTempArray()(j);
   }

@@ -8,31 +8,31 @@ tasklist    = ImplicitHydroTasks
 
 <output0>
 file_type   = rst
-dt          = 1.E2
+dt          = 1.E4
 
 <output1>
 file_type   = hst       # History data dump
-dt          = 1.E2      # time increment between outputs
+dt          = 1.E4      # time increment between outputs
 
 <output2>
 file_type   = pnetcdf    # Binary data dump
 variable    = prim      # variables to be output
-dt          = 1.E2       # time increment between outputs
+dt          = 1.E4       # time increment between outputs
 
 <output3>
 file_type   = pnetcdf
 variable    = uov
-dt          = 1.E2
+dt          = 1.E4
 
 <output4>
 file_type   = pnetcdf
 variable    = diag
-dt          = 1.E2
+dt          = 1.E4
 
 <output5>
 file_type   = pnetcdf
 variable    = rad
-dt          = 1.E2
+dt          = 1.E4
 
 <time>
 cfl_number  = 0.9           # The Courant, Friedrichs, & Lewy (CFL) Number
@@ -87,7 +87,7 @@ microphysics_config = amarsw-mp.yaml
 Rd          = 189.
 
 #H2O
-eps1        = 0.45    0.45    0.45
+eps1        = 0.4091    0.4091    0.4091
 beta1       = 0.      17.9    17.9
 rcp1        = 8.0455  8.05    8.05
 Ttriple1    = 273.16

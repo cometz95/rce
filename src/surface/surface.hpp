@@ -65,17 +65,17 @@ class Surface : public ParameterGroup {
 
   int is, js, ks;
   int ie, je, ke;
-  double dzPBL;
+  Real dzPBL;
   Real meltingPointVapor1;
-  double rho_l_vapor1;
-  double rho_s_vapor1;
-  double cSurf;
-  double dt;
-  double time;
-  double alpha_s;
-  double alpha_a;
-  double omega;
-  double s0;
+  Real rho_l_vapor1;
+  Real rho_s_vapor1;
+  Real cSurf;
+  Real dt;
+  Real time;
+  Real alpha_s;
+  Real alpha_a;
+  Real omega;
+  Real s0;
 };
 
 using SurfacePtr = std::shared_ptr<Surface>;

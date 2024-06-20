@@ -28,8 +28,8 @@ def run_ktable_one_band(bname: str):
     driver = create_rfm_driver(wav_grid, tem_grid, species, hitran_file)
 
     # write rfm atmosphere file to file
-    write_rfm_atm(atm, rundir=bname)
-    write_rfm_drv(driver, rundir=bname)
+    # write_rfm_atm(atm, rundir=bname)
+    # write_rfm_drv(driver, rundir=bname)
 
     # run rfm and write kcoeff file
     pwd = os.getcwd()

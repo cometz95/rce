@@ -223,7 +223,7 @@ class Thermodynamics {
   //! \param[in] cv_hat $cv_hat$ molar heat capacity
   //! \param[in] misty if true, there is an infinite supple of cloud
   //! \return molar fraction change of vapor to cloud
-  RealArrayX TryEquilibriumTP_VaporCloud(AirParcel const &qfrac, int ivapor,
+  RealArrayX TryEquilibriumTP_VaporCloud(AirParcel &qfrac, int ivapor,
                                          Real cv_hat = 0.,
                                          bool misty = false) const;
 
