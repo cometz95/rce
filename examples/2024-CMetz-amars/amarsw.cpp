@@ -65,18 +65,8 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
 }
 
 void MeshBlock::UserWorkInLoop() {
-  for (int j = js; j <= je; ++j) {
-    // FIXME (cmetz) fix the energy balance of evaporation
-    // there should be heating from the phase change
-    // right now, the water hits surf and immediately heats to Tsurf, no energy
-    // transfer water evaporates at surface and doesn't cool the surface
-    Real dt = this->pmy_mesh->dt;
-    Real accumPrecipAmd =
-        this->pimpl->psurf->AccumulatePrecipitates(this, is, j);
-    RealArrayX AmdEvap = this->pimpl->psurf->EvapPrecip(this, j, dt);
-    double dTs = this->pimpl->psurf->ChangeTempFromForcing(
-        this, j, dt, accumPrecipAmd, AmdEvap);
-  }
+  if (this->pimpl->psurf != nullptr && this->pimpl->psurf->hasSurface)
+    this->pimpl->psurf->DoSurfaceProcesses(this);
 }
 
 // void Mesh::UserWorkAfterLoop(ParameterInput *pin) {
@@ -127,15 +117,15 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
               pthermo->RelativeHumidity(this, n, k, j, i);
 
         user_out_var(4 + NVAPOR, k, j, i) =
-            this->pimpl->psurf->GetBTempArray()(j);
+            this->pimpl->psurf->GetBTempArray()(k, j);
         user_out_var(4 + NVAPOR + 1, k, j, i) =
-            this->pimpl->psurf->GetAmd()[0][1](j);
+            this->pimpl->psurf->GetAmd()(0, 1, k, j);
         user_out_var(4 + NVAPOR + 2, k, j, i) =
-            this->pimpl->psurf->GetAmd()[0][0](j);
+            this->pimpl->psurf->GetAmd()(0, 0, k, j);
         user_out_var(4 + NVAPOR + 3, k, j, i) =
-            this->pimpl->psurf->GetGel()[0][1](j);
+            this->pimpl->psurf->GetGel()(0, 1, k, j);
         user_out_var(4 + NVAPOR + 4, k, j, i) =
-            this->pimpl->psurf->GetGel()[0][0](j);
+            this->pimpl->psurf->GetGel()(0, 0, k, j);
       }
 }
 

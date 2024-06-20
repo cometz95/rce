@@ -28,9 +28,9 @@ class Surface : public ParameterGroup {
   Surface(MeshBlock *pmb, ParameterInput *pin);
   ~Surface();
 
-  // accumulates precipitates at one surface box (from only the 1st atm layer,
-  // if iSkim = is)
-  void AccumulatePrecipitates(int iSkim, int j);
+  bool hasSurface = true;
+
+  void DoSurfaceProcesses(MeshBlock *pmb);
 
   // calculates precipitates evaporation rates
   //  FIXME (cmetz) pass in the amd arrays, not just one amd(j) value
@@ -38,34 +38,37 @@ class Surface : public ParameterGroup {
                                Real btemp, Real cSurf, Real dt, Real Cde,
                                Real Mbar) const;
 
-  Real ChangeTempFromForcing(MeshBlock *pmb, int j, Real dt,
+  Real ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
                              Real accumPrecipAmd, RealArrayX AmdEvap);
-  Real AccumulatePrecipitates(MeshBlock *pmb, int iSkim, int j);
-  RealArrayX EvapPrecip(MeshBlock *pmb, int j, Real dt);
+  Real AccumulatePrecipitates(MeshBlock *pmb, int k, int j, int iSkim);
+  RealArrayX EvapPrecip(MeshBlock *pmb, int k, int j, Real dt);
 
   size_t RestartDataSizeInBytes() const { return 0; }
   size_t DumpRestartData(char *pdst) const { return 0; }
   size_t LoadRestartData(char *psrc) { return 0; }
 
   AthenaArray<Real> GetBTempArray() const { return btempArray; }
-  std::vector<std::vector<AthenaArray<Real>>> GetAmd() const { return amd; }
-  std::vector<std::vector<AthenaArray<Real>>> GetGel() const { return gel; }
+  AthenaArray<Real> GetAmd() const { return amd; }
+  AthenaArray<Real> GetGel() const { return gel; }
 
  protected:
   AthenaArray<Real> btempArray;
 
+  // dimensions (NVAPOR, 2, ncells3, ncells2)
   // the amd and gel containers hold NVAPOR arrays, each of which are 2
-  // (NPHASE-SURF) long, and each of those hold an array ncells2 long (number of
-  // cells in the j direction on surface) 0 slot is sold, 1 slot is liquid
-  std::vector<std::vector<AthenaArray<Real>>> amd;
-  std::vector<std::vector<AthenaArray<Real>>> gel;
+  // (numphases) long. 0 slot is sold, 1 slot is liquid.
+  // and each of those hold an array ncells3/ncells2 long (number of
+  // cells in the k/j direction on surface)
+  AthenaArray<Real>
+      amd;  // areal mass density of precipitates on surface #kg/m^2
+  AthenaArray<Real> gel;  // global equivalent layer #m
 
   int is, js, ks;
   int ie, je, ke;
-  bool H2OisLiquid;
   double dzPBL;
-  double rholH2O;
-  double rhosH2O;
+  Real meltingPointVapor1;
+  double rho_l_vapor1;
+  double rho_s_vapor1;
   double cSurf;
   double dt;
   double time;

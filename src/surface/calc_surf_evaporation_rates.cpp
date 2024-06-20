@@ -43,7 +43,7 @@ RealArrayX Surface::CalcSurfEvapRates(AirParcel const& qfrac, int i,
     int j = pthermo->GetCloudIndex(i, n);
     Real es_surf = pthermo->GetSVPFunc1()[i][n](btemp_container, i, j);
 
-    // getting des/dt locally around btemp with finite difference
+    // getting des/dt locally around btemp with definition of the derivative
     Real T2 = btemp + 0.01;
     btemp_container.w[IDN] = T2;
     Real es_2 = pthermo->GetSVPFunc1()[i][n](btemp_container, i, j);
@@ -51,6 +51,7 @@ RealArrayX Surface::CalcSurfEvapRates(AirParcel const& qfrac, int i,
     btemp_container.w[IDN] = T1;
     Real es_1 = pthermo->GetSVPFunc1()[i][n](btemp_container, i, j);
     Real des_dt = (es_2 - es_1) / (T2 - T1);
+    // CHECKME (cmetz)
     int thermoIndex = 1 + n + NVAPOR;
     Real Mi = pthermo->GetMu(thermoIndex);
 
@@ -128,6 +129,5 @@ RealArrayX Surface::CalcSurfEvapRates(AirParcel const& qfrac, int i,
   //  for (auto& rate : rates) rate *= r;
   //}
 
-  // subtract from amd
   return rates;
 }

@@ -120,8 +120,8 @@ nstr          = 4
 
 <surface>
 csurf = 100000.
-rhosH2O = 910.
-rholH2O = 1000.
+rho_s_vapor1 = 910.
+rho_l_vapor1 = 1000.
 alpha_s = 0.3
 alpha_a = 0.5
 omega = 0.00007094828
