@@ -106,7 +106,7 @@ Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
     sign = 1;
   else if (btempArray(k, j) > meltingPointVapor1)
     sign = 0;
-  Real dT_latent = sign * (accumPrecipAmd * L) / cSurf;
+  Real dT_latent_precip = sign * (accumPrecipAmd * L) / cSurf;
 
   // Tf = (cSurf * btempArray(k, j) - accumPrecipAmd * cp * Tip +
   //       sign * accumPrecipAmd * L) /
@@ -117,12 +117,12 @@ Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
   // right now don't have access to L for solid phase
   // AmdEvap is the amount evaporated off of the surface, and its energy
   // leaving the surface
-  Real evapCooling = (AmdEvap[0] * L + AmdEvap[1] * L) / dt;
+  Real dT_evapCooling = (AmdEvap[0] * L + AmdEvap[1] * L) / cSurf;
 
   Real dTs = (swin * (1 - alpha_a) * (1 - alpha_s) + tot_fluxdn -
-              Constants::stefanBoltzmann * pow(btempArray(k, j), 4) -
-              evapCooling + dT_latent) *
-             (dt / cSurf);
+              Constants::stefanBoltzmann * pow(btempArray(k, j), 4)) *
+                 (dt / cSurf) +
+             dT_latent - dT_evapCooling;
 
   btempArray(k, j) += dTs;
   return dTs;
