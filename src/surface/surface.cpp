@@ -122,7 +122,7 @@ Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
   Real dTs = (swin * (1 - alpha_a) * (1 - alpha_s) + tot_fluxdn -
               Constants::stefanBoltzmann * pow(btempArray(k, j), 4)) *
                  (dt / cSurf) +
-             dT_latent - dT_evapCooling;
+             dT_latent_precip - dT_evapCooling;
 
   btempArray(k, j) += dTs;
   return dTs;
