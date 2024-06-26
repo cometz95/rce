@@ -106,7 +106,10 @@ Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
     sign = 1;
   else if (btempArray(k, j) > meltingPointVapor1)
     sign = 0;
-  Real dT_latent_precip = sign * (accumPrecipAmd * L) / cSurf;
+  // FIXME (cmetz)
+  // when snow is added, remove this hardcoded value
+  Real Lfusion = 334000;
+  Real dT_latent_precip = sign * (accumPrecipAmd * Lfusion) / cSurf;
 
   // Tf = (cSurf * btempArray(k, j) - accumPrecipAmd * cp * Tip +
   //       sign * accumPrecipAmd * L) /
@@ -117,13 +120,39 @@ Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
   // right now don't have access to L for solid phase
   // AmdEvap is the amount evaporated off of the surface, and its energy
   // leaving the surface
-  Real dT_evapCooling = (AmdEvap[0] * L + AmdEvap[1] * L) / cSurf;
+  Real dT_evapCooling = (AmdEvap[0] * (L + Lfusion) + AmdEvap[1] * L) / cSurf;
 
   Real dTs = (swin * (1 - alpha_a) * (1 - alpha_s) + tot_fluxdn -
               Constants::stefanBoltzmann * pow(btempArray(k, j), 4)) *
                  (dt / cSurf) +
              dT_latent_precip - dT_evapCooling;
 
+  std::cout << "dT evap cooling: " << dT_evapCooling << std::endl;
+  std::cout << "dT latent precip: " << dT_latent_precip << std::endl;
+  Real newTemp = btempArray(k, j) + dTs;
+  Real deltaAmd = 0;
+  // btemp getting hotter, melting some ice
+  if (newTemp > meltingPointVapor1 && btempArray(k, j) < meltingPointVapor1) {
+    deltaAmd = -dTs * cSurf / Lfusion;
+    if (-deltaAmd > amd(0, 0, k, j)) {
+      deltaAmd = -amd(0, 0, k, j);
+      dTs += deltaAmd * Lfusion / cSurf;
+    } else
+      dTs = 0;
+  }
+  // btemp getting colder, freezing some water
+  else if (newTemp < meltingPointVapor1 &&
+           btempArray(k, j) > meltingPointVapor1) {
+    deltaAmd = dTs * cSurf / Lfusion;
+    if (deltaAmd > amd(0, 1, k, j)) {
+      deltaAmd = amd(0, 1, k, j);
+      dTs += deltaAmd * Lfusion / cSurf;
+    } else
+      dTs = 0;
+  } else
+    deltaAmd = 0;
+  amd(0, 0, k, j) += deltaAmd;
+  amd(0, 1, k, j) += -deltaAmd;
   btempArray(k, j) += dTs;
   return dTs;
 }
