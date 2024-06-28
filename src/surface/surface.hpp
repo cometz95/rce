@@ -39,8 +39,10 @@ class Surface : public ParameterGroup {
                                Real Mbar) const;
 
   Real ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
-                             Real accumPrecipAmd, RealArrayX AmdEvap);
-  Real AccumulatePrecipitates(MeshBlock *pmb, int k, int j, int iSkim);
+                             AthenaArray<Real> &accumPrecipAmd,
+                             RealArrayX AmdEvap);
+  AthenaArray<Real> AccumulatePrecipitates(MeshBlock *pmb, int k, int j,
+                                           int iSkim);
   RealArrayX EvapPrecip(MeshBlock *pmb, int k, int j, Real dt);
 
   size_t RestartDataSizeInBytes() const { return 0; }
@@ -63,6 +65,7 @@ class Surface : public ParameterGroup {
       amd;  // areal mass density of precipitates on surface #kg/m^2
   AthenaArray<Real> gel;  // global equivalent layer #m
 
+  // init variables
   int is, js, ks;
   int ie, je, ke;
   Real dzPBL;
@@ -76,6 +79,10 @@ class Surface : public ParameterGroup {
   Real alpha_a;
   Real omega;
   Real s0;
+
+  // state variables
+  // forcing (positive into surface), units of W/m^2
+  Real fin;
 };
 
 using SurfacePtr = std::shared_ptr<Surface>;

@@ -103,6 +103,9 @@ class Thermodynamics {
   //! Destroy the one and only instance of Thermodynamics
   static void Destroy();
 
+  Real CalcSVPDeriv(const Real temp, const int i, const int j,
+                    const int n) const;
+
   //! Ideal gas constant of dry air in [J/(kg K)]
   //! \return $R_d=\hat{R}/\mu_d$
   Real GetRd() const { return Rd_; }

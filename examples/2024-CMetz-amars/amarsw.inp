@@ -12,27 +12,27 @@ dt          = 1.E4
 
 <output1>
 file_type   = hst       # History data dump
-dt          = 1.E4      # time increment between outputs
+dt          = 1.E3      # time increment between outputs
 
 <output2>
 file_type   = pnetcdf    # Binary data dump
 variable    = prim      # variables to be output
-dt          = 1.E4       # time increment between outputs
+dt          = 1.E3       # time increment between outputs
 
 <output3>
 file_type   = pnetcdf
 variable    = uov
-dt          = 1.E4
+dt          = 1.E3
 
 <output4>
 file_type   = pnetcdf
 variable    = diag
-dt          = 1.E4
+dt          = 1.E3
 
 <output5>
 file_type   = pnetcdf
 variable    = rad
-dt          = 1.E4
+dt          = 1.E3
 
 <time>
 cfl_number  = 0.9           # The Courant, Friedrichs, & Lewy (CFL) Number
@@ -48,9 +48,11 @@ x1max       = 20.E3         # maximum value of X1
 ix1_bc      = reflecting    # inner-X1 boundary flag
 ox1_bc      = reflecting    # outer-X1 boundary flag
 
-nx2         = 128            # Number of zones in X2-direction
+nx2 = 1
+x2max = 1
+#nx2         = 128            # Number of zones in X2-direction
 x2min       = 0            # minimum value of X2
-x2max       = 64.E3        # maximum value of X2
+#x2max       = 64.E3        # maximum value of X2
 ix2_bc      = periodic      # Inner-X2 boundary condition flag
 ox2_bc      = periodic      # Outer-X2 boundary condition flag
 
@@ -62,7 +64,8 @@ ox3_bc      = periodic    # Outer-X3 boundary condition flag
 
 <meshblock>
 nx1         = 128
-nx2         = 16
+#nx2         = 8
+nx2 = 1
 nx3         = 1
 
 <hydro>
@@ -119,15 +122,17 @@ radiation_config = amarsw-ck.yaml
 nstr          = 4
 
 <surface>
-csurf = 100000.
+cLand = 100000.
+cOcean = 300000.
+fOcean = 0.5
 rho_s_vapor1 = 910.
 rho_l_vapor1 = 1000.
-alpha_s = 0.3
-alpha_a = 0.5
+alpha_s = 0.9
+alpha_a = 0.7
 omega = 0.00007094828
 s0 = 410.428151577
-init_btemp = 230.
-init_amd_s_vapor1 = 100.
+init_btemp = 270.
+init_amd_s_vapor1 = 10.
 init_amd_l_vapor1 = 0.
 
 <problem>

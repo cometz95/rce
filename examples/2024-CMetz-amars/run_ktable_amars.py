@@ -25,11 +25,11 @@ def run_ktable_one_band(bname: str):
     wav_grid = (wmin, wmax, wres)
 
     species = list(map(str, config[bname]["opacity"]))
-    driver = create_rfm_driver(wav_grid, tem_grid, species, hitran_file)
+    driver = create_rfm_driver(wav_grid, tem_grid, species, hitran_file, cia_file)
 
     # write rfm atmosphere file to file
-    # write_rfm_atm(atm, rundir=bname)
-    # write_rfm_drv(driver, rundir=bname)
+    write_rfm_atm(atm, rundir=bname)
+    write_rfm_drv(driver, rundir=bname)
 
     # run rfm and write kcoeff file
     pwd = os.getcwd()
@@ -49,6 +49,7 @@ if __name__ == "__main__":
     max_threads = cpu_count()
 
     hitran_file = find_resource("HITRAN2020.par")
+    cia_file = find_resource("CO2-CO2_2018.cia")
     atm = read_atm_profile(atm_profile)
     config = load_configure(opacity_config)
 
