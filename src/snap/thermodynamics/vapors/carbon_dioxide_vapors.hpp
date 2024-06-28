@@ -8,7 +8,7 @@
 inline double sat_vapor_p_CO2_Antoine(double T) {
   double A = 6.81228;
   double B = 1301.679;
-  double C = -34.94;
+  double C = -3.494;
 
   double result = pow(10, A - B / (T + C));
   return 1.E5 * result;

@@ -6,7 +6,10 @@
 #include <air_parcel.hpp>
 
 // snap
-#include "thermodynamics.hpp"
+#include <snap/thermodynamics/thermodynamics.hpp>
+
+// surface
+#include "surface.hpp"
 
 // Calculates phase equilibrium of
 // Vapor <=> Precipitate (surface)
@@ -23,10 +26,10 @@
 // for each phase
 
 // qfrac has T in IDN slot
-RealArrayX Thermodynamics::CalcSurfEvapRates(AirParcel const& qfrac, int i,
-                                             Real& amd, Real btemp, Real dTs,
-                                             Real cSurf, Real dt, Real Cde,
-                                             Real Mbar) const {
+RealArrayX Surface::CalcSurfEvapRates(AirParcel const& qfrac, int i,
+                                      Real& amd_x, Real btemp, Real cSurf,
+                                      Real dt, Real Cde, Real Mbar) const {
+  auto pthermo = Thermodynamics::GetInstance();
   Real xv = qfrac.w[i];
 
   // need to pass an airparcel object to svp_func1 to avoid making a new svp
@@ -34,22 +37,23 @@ RealArrayX Thermodynamics::CalcSurfEvapRates(AirParcel const& qfrac, int i,
   AirParcel btemp_container(AirParcel::Type::MoleFrac);
   btemp_container.w[IDN] = btemp;
 
-  std::vector<Real> rates(1 + cloud_index_set_[i].size(), 0.);
+  std::vector<Real> rates(1 + pthermo->GetCloudIndexSet(i).size(), 0.);
 
-  for (int n = 0; n < cloud_index_set_[i].size(); ++n) {
-    int j = cloud_index_set_[i][n];
-    Real es_surf = svp_func1_[i][n](btemp_container, i, j);
+  for (int n = 0; n < pthermo->GetCloudIndexSet(i).size(); ++n) {
+    int j = pthermo->GetCloudIndex(i, n);
+    Real es_surf = pthermo->GetSVPFunc1()[i][n](btemp_container, i, j);
 
-    // getting des/dt locally around btemp with finite difference
+    // getting des/dt locally around btemp with definition of the derivative
     Real T2 = btemp + 0.01;
     btemp_container.w[IDN] = T2;
-    Real es_2 = svp_func1_[i][n](btemp_container, i, j);
+    Real es_2 = pthermo->GetSVPFunc1()[i][n](btemp_container, i, j);
     Real T1 = btemp - 0.01;
     btemp_container.w[IDN] = T1;
-    Real es_1 = svp_func1_[i][n](btemp_container, i, j);
+    Real es_1 = pthermo->GetSVPFunc1()[i][n](btemp_container, i, j);
     Real des_dt = (es_2 - es_1) / (T2 - T1);
+    // CHECKME (cmetz)
     int thermoIndex = 1 + n + NVAPOR;
-    Real Mi = GetMu(thermoIndex);
+    Real Mi = pthermo->GetMu(thermoIndex);
 
     // this comes from the defintion qstar = (es/p)*(Mi/Mbar), and a bit of
     // calculus evaluated at the surface
@@ -57,8 +61,8 @@ RealArrayX Thermodynamics::CalcSurfEvapRates(AirParcel const& qfrac, int i,
 
     // needs to be 2 or 3 (NOT i, which I set to zero in inp file). each phase
     // has a different latent heat of vaporization
-    Real L = GetLatentEnergyMass(thermoIndex, btemp);
-    Real Be = (GetCpMassRef(thermoIndex) / L) / dqstar_dt;
+    Real L = pthermo->GetLatentEnergyMass(thermoIndex, btemp);
+    Real Be = (pthermo->GetCpMassRef(thermoIndex) / L) / dqstar_dt;
     Real rhoatm = (qfrac.w[IPR] * Mbar) / (qfrac.w[IDN] * Constants::Rgas);
     // Real En = (cSurf/dt)*(dTs - dTs) / L;
     Real En = 0;  // with a different parameterization of G, this wouldn't be 0
@@ -69,7 +73,8 @@ RealArrayX Thermodynamics::CalcSurfEvapRates(AirParcel const& qfrac, int i,
         std::sqrt(std::pow(qfrac.w[IVX], 2) + std::pow(qfrac.w[IVY], 2) +
                   std::pow(qfrac.w[IVZ], 2));
     Real Eair = rhoatm * Cde * Ubar *
-                ((svp_func1_[i][n](qfrac, i, j) / qfrac.w[IPR]) * (Mi / Mbar) -
+                ((pthermo->GetSVPFunc1()[i][n](qfrac, i, j) / qfrac.w[IPR]) *
+                     (Mi / Mbar) -
                  qfrac.w[i]);
     // we calculate the evaporation rate, so we subtract the rate from amd and
     // add it to the vapor pool
@@ -88,7 +93,7 @@ RealArrayX Thermodynamics::CalcSurfEvapRates(AirParcel const& qfrac, int i,
     // std::cout << "qfrac.w[IDN]: " << qfrac.w[IDN] << std::endl;
     // std::cout << "btemp: " << btemp << std::endl;
 
-    if (amd > 0) {
+    if (amd_x > 0) {
       // if rate is negative, condensation occurs. condense at most
       // xv/layerThickness vapor
       if (rate < 0.) {
@@ -101,11 +106,11 @@ RealArrayX Thermodynamics::CalcSurfEvapRates(AirParcel const& qfrac, int i,
       // if rate is positive, evaporation occurs. can evaporate at most amd
       // precip
       else if (rate > 0.) {
-        rates[0] += std::min(rate * dt, amd);
-        rates[1 + n] = -std::min(rate * dt, amd);
+        rates[0] += std::min(rate * dt, amd_x);
+        rates[1 + n] = -std::min(rate * dt, amd_x);
       }
-    } else if (amd <= 0) {
-      amd = 0;
+    } else if (amd_x <= 0) {
+      amd_x = 0;
       // if rate is positive and amd = 0, no more evaporation can occur
       if (rate > 0.) {
         rates[0] = 0;
@@ -124,6 +129,5 @@ RealArrayX Thermodynamics::CalcSurfEvapRates(AirParcel const& qfrac, int i,
   //  for (auto& rate : rates) rate *= r;
   //}
 
-  // subtract from amd
   return rates;
 }

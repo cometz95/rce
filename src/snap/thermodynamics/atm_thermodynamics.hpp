@@ -51,7 +51,7 @@ Real cal_dlnT_dlnP(AirParcel const &qfrac, Real const *cp_ratio_mole,
 //!
 //! $H_i = \frac{e_i}{e_i^s}$
 //! \return $H$
-inline Real get_relative_humidity(AirParcel const &qfrac, int n) {
+inline Real get_relative_humidity(AirParcel &qfrac, int n) {
   auto pthermo = Thermodynamics::GetInstance();
   auto rates = pthermo->TryEquilibriumTP_VaporCloud(qfrac, n, 0., true);
   return qfrac.w[n] / (qfrac.w[n] + rates[0]);

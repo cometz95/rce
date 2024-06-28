@@ -5,25 +5,44 @@ opacity-sources:
   - name: CO2
     class: Hitran
 
-bands: [B1, B2, B3]
+bands: [B1,B2,B3,B4,B5]
 
+#CO2 CIA
 B1:
   units: cm-1
   grid-type: regular
-  wavenumber-range: [1., 500.]
+  wavenumber-range: [1., 150.]
   resolution: 0.1
   opacity: [H2O, CO2]
 
+#H2O
 B2:
   units: cm-1
   grid-type: regular
-  wavenumber-range: [500., 1200.]
+  wavenumber-range: [150., 500.]
   resolution: 0.1
   opacity: [H2O, CO2]
 
+#CO2 + CIA
 B3:
   units: cm-1
   grid-type: regular
-  wavenumber-range: [1200., 2000.]
+  wavenumber-range: [500., 1450.]
+  resolution: 0.1
+  opacity: [H2O, CO2]
+
+#H2O
+B4:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [1450., 1850.]
+  resolution: 0.1
+  opacity: [H2O, CO2]
+
+#CO2
+B5:
+  units: cm-1
+  grid-type: regular
+  wavenumber-range: [1850., 2000.]
   resolution: 0.1
   opacity: [H2O, CO2]

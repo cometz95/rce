@@ -1,47 +1,75 @@
 opacity-sources:
-  - name: H2O
-    class: HitranCK
-    data: amarsw-ck-B1.nc
-    dependent-species: [vapor.H2O]
-
   - name: CO2
     class: HitranCK
-    data: amarsw-ck-B2.nc
+    data: amarsw-ck-B1.nc
     dependent-species: [vapor.dry]
 
   - name: H2O
     class: HitranCK
-    data: amarsw-ck-B3.nc
+    data: amarsw-ck-B2.nc
     dependent-species: [vapor.H2O]
 
-bands: [B1, B2, B3]
+  - name: CO2
+    class: HitranCK
+    data: amarsw-ck-B3.nc
+    dependent-species: [vapor.dry]
 
+  - name: H2O
+    class: HitranCK
+    data: amarsw-ck-B4.nc
+    dependent-species: [vapor.H2O]
+
+  - name: CO2
+    class: HitranCK
+    data: amarsw-ck-B5.nc
+    dependent-species: [vapor.dry]
+
+bands: [B1, B2, B3, B4, B5]
+
+#CO2 CIA
 B1:
   units: cm-1
   grid-type: cktable
-  wavenumber-range: [1., 500.]
-  opacity: [H2O]
-  rt-solver: Disort
-  flags: [thermal_emission]
-  albedo: 0.01
-
-B2:
-  units: cm-1
-  grid-type: cktable
-  wavenumber-range: [500., 1200.]
+  wavenumber-range: [1., 150.]
   opacity: [CO2]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0.01
 
-B3:
+#H2O
+B2:
   units: cm-1
   grid-type: cktable
-  wavenumber-range: [1200., 2000.]
+  wavenumber-range: [150., 500.]
   opacity: [H2O]
   rt-solver: Disort
   flags: [thermal_emission]
-  albedo: 0.01
+
+#CO2 + CIA
+B3:
+  units: cm-1
+  grid-type: cktable
+  wavenumber-range: [500., 1450.]
+  opacity: [CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
+#H2O
+B4:
+  units: cm-1
+  grid-type: cktable
+  wavenumber-range: [1450., 1850.]
+  opacity: [H2O]
+  rt-solver: Disort
+  flags: [thermal_emission]
+
+#CO2
+B5:
+  units: cm-1
+  grid-type: cktable
+  wavenumber-range: [1850., 2000.]
+  opacity: [CO2]
+  rt-solver: Disort
+  flags: [thermal_emission]
 
 Disort-flags:
   ibcnd: false
