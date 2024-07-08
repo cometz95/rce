@@ -61,6 +61,7 @@ add_subdirectory(special)
 add_subdirectory(single_column)
 add_subdirectory(diagnostics)
 add_subdirectory(forcing)
+add_subdirectory(surface)
 
 if (${Torch_FOUND})
   add_subdirectory(torch)
@@ -94,9 +95,14 @@ set(CANOE_LIBRARY_${buildu}
   "scm_${buildl}"
   "diagnostics_${buildl}"
   "forcing_${buildl}"
+<<<<<<< HEAD
   $<$<BOOL:${MINICHEM}>:minichem::minichem++>
   #"modules_${buildl}"
   ${YAML_CPP_LIBRARIES}
+=======
+  "surface_${buildl}"
+  "yaml-cpp"
+>>>>>>> e762c56 (add surface (cometz))
   ${CPPDISORT_LIBRARY_${buildu}}
   ${PYTHON_LIBRARY_RELEASE}
   ${NETCDF_LIBRARIES}

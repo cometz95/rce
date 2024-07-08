@@ -30,6 +30,9 @@
 #include <exo3/cubed_sphere.hpp>
 #include <exo3/cubed_sphere_utility.hpp>
 
+//surface
+#include <surface/surface.hpp>
+
 // harp
 #include "radiation.hpp"
 #include "rt_solvers.hpp"
@@ -226,8 +229,10 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
 
   // set the surface temperature from the user input variables
   // FIXME(cli)
-  //AthenaArray<Real> &ts = pmb->ruser_meshblock_data[1];
-  //ds_.bc.btemp = ts(j);
+  // this shouldn't cause a seg fault because of short circuiting
+  if (pmb->pimpl->psurf != nullptr && pmb->pimpl->psurf->hasSurface) {
+    ds_.bc.btemp = pmb->pimpl->psurf->GetBTempArray()(j);
+  }
 }
 
 void RadiationBand::RTSolverDisort::CalBandFlux(MeshBlock const *pmb, int k,

@@ -39,7 +39,7 @@ class MicrophysicalSchemeBase : public NamedGroup {
   //!
   //! \param [in] air air parcel provides data to populate the reaction matrix
   //! \param [in] time current simulation time
-  virtual void AssembleReactionMatrix(AirParcel const &air, Real time) = 0;
+  virtual void AssembleReactionMatrix(AirParcel &air, Real time) = 0;
 
   //! \brief Evolve the air parcel one time step
   //!
@@ -128,7 +128,7 @@ class Kessler94 : public MicrophysicalScheme<3> {
   ~Kessler94();
 
  public:  /// functions
-  void AssembleReactionMatrix(AirParcel const &air, Real time) override;
+  void AssembleReactionMatrix(AirParcel &air, Real time) override;
   void EvolveOneStep(AirParcel *air, Real time, Real dt) override;
 
   /// inbound functions

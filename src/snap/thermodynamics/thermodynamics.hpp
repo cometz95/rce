@@ -103,6 +103,9 @@ class Thermodynamics {
   //! Destroy the one and only instance of Thermodynamics
   static void Destroy();
 
+  Real CalcSVPDeriv(const Real temp, const int i, const int j,
+                    const int n) const;
+
   //! Ideal gas constant of dry air in [J/(kg K)]
   //! \return $R_d=\hat{R}/\mu_d$
   Real GetRd() const { return Rd_; }
@@ -222,10 +225,6 @@ class Thermodynamics {
     return GetLatentHeatMole(i, rates, temp) * inv_mu_[i];
   }
 
-  RealArrayX CalcSurfEvapRates(AirParcel const &qfrac, int i, Real &amd,
-                               Real btemp, Real dTs, Real cSurf, Real dt,
-                               Real Cde, Real Mbar) const;
-
   //! \brief Calculate the equilibrium mole transfer by cloud reaction
   //! vapor -> cloud
   //!
@@ -234,7 +233,7 @@ class Thermodynamics {
   //! \param[in] cv_hat $cv_hat$ molar heat capacity
   //! \param[in] misty if true, there is an infinite supple of cloud
   //! \return molar fraction change of vapor to cloud
-  RealArrayX TryEquilibriumTP_VaporCloud(AirParcel const &qfrac, int ivapor,
+  RealArrayX TryEquilibriumTP_VaporCloud(AirParcel &qfrac, int ivapor,
                                          Real cv_hat = 0.,
                                          bool misty = false) const;
 
@@ -367,6 +366,8 @@ class Thermodynamics {
   //! $  = \gamma_d/(\gamma_d - 1.)*R_d*T*(1 + \sum_i (q_i*(\hat{c}_{pi}
   //! - 1.)))$
   Real GetEnthalpyMass(MeshBlock const *pmb, int k, int j, int i) const;
+
+  SVPFunc1Container GetSVPFunc1() const { return svp_func1_; }
 
   //! \brief Moist static energy
   //!

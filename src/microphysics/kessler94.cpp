@@ -23,7 +23,7 @@ Kessler94::~Kessler94() {
   app->Log("Destroy Kessler94 Scheme for " + GetName());
 }
 
-void Kessler94::AssembleReactionMatrix(AirParcel const &air, Real time) {
+void Kessler94::AssembleReactionMatrix(AirParcel &air, Real time) {
   auto pthermo = Thermodynamics::GetInstance();
 
   // get indices
