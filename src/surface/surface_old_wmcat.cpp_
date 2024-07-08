@@ -34,12 +34,11 @@ Surface::Surface(MeshBlock *pmb, ParameterInput *pin) {
 
   alpha_s = pin->GetOrAddReal("surface", "alpha_s", 0.3);
   alpha_a = pin->GetOrAddReal("surface", "alpha_a", 0.5);
-  // C = cp*rho*dz, where dz is the depth of the surface layer that changes
-  // temperature
+  //C = cp*rho*dz, where dz is the depth of the surface layer that changes temperature
   Real cLand = pin->GetOrAddReal("surface", "cLand", 100000);
   Real cOcean = pin->GetOrAddReal("surface", "cOcean", 300000);
   Real fOcean = pin->GetOrAddReal("surface", "fOcean", 0.5);
-  // weight C by the fraction of ocean and land
+  //weight C by the fraction of ocean and land
   cSurf = cLand * (1 - fOcean) + cOcean * fOcean;
   rho_l_vapor1 = pin->GetOrAddReal("surface", "rho_l_vapor1", 1000);
   rho_s_vapor1 = pin->GetOrAddReal("surface", "rho_s_vapor1", 910);
@@ -73,9 +72,9 @@ void Surface::DoSurfaceProcesses(MeshBlock *pmb) {
   for (int k = ks; k <= ke; ++k) {
     for (int j = js; j <= je; ++j) {
       Real dt = pmb->pmy_mesh->dt;
-      RealArrayX AmdEvap = pmb->pimpl->psurf->EvapPrecip(pmb, k, j, dt);
-      AthenaArray<Real> accumPrecipAmd =
+      RealArrayX accumPrecipAmd =
           pmb->pimpl->psurf->AccumulatePrecipitates(pmb, k, j, is);
+      RealArrayX AmdEvap = pmb->pimpl->psurf->EvapPrecip(pmb, k, j, dt);
       Real dTs = pmb->pimpl->psurf->ChangeTempFromForcing(
           pmb, k, j, dt, accumPrecipAmd, AmdEvap);
     }
@@ -83,8 +82,7 @@ void Surface::DoSurfaceProcesses(MeshBlock *pmb) {
 }
 
 Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
-                                    AthenaArray<Real> &accumPrecipAmd,
-                                    RealArrayX AmdEvap) {
+                                    RealArrayX& accumPrecipAmd, RealArrayX AmdEvap) {
   Real swin = s0 * (1 + std::sin(omega * time));
   auto pthermo = Thermodynamics::GetInstance();
 
@@ -96,116 +94,126 @@ Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
     tot_fluxdn += pmb->pimpl->prad->GetBand(n)->bflxdn(k, j, is);
 
   fin += swin * (1 - alpha_a) * (1 - alpha_s) + tot_fluxdn -
-         Constants::stefanBoltzmann * pow(btempArray(k, j), 4);
+              Constants::stefanBoltzmann * pow(btempArray(k, j), 4)
 
-  // FIXME (cmetz) should loop over all precipitates, not just 0
-  // e.g., int thermoIndex = 1 + nCloud + NVAPOR;
-  // FIXME (cmetz) maybe later incorporate the q=mcat term (fix sign issue), for
-  // now just include latent
-  //
-
-  int thermoIndex = 1 + 0 + NVAPOR;
-  Real L = pthermo->GetLatentEnergyMass(thermoIndex, btempArray(k, j));
-
-  // FIXME (cmetz) when snow is added, remove this hardcoded value
+  // FIXME (cmetz)
+  // when snow is added, remove this hardcoded value
   Real Lfusion = 334000;
   Real f_evapCooling = (AmdEvap[0] * (L + Lfusion) + AmdEvap[1] * L) / dt;
 
   fin -= f_evapCooling;
 
+
+  // FIXME (cmetz) should loop over all precipitates, not just 0
+  // e.g., int thermoIndex = 1 + nCloud + NVAPOR;
+  // FIXME (cmetz) maybe later incorporate the q=mcat term (fix sign issue), for
+  // now just include latent
+  //int thermoIndex = 1 + 0 + NVAPOR;
+  //Real cp = pthermo->GetCpMassRef(thermoIndex);
+  //Real L = pthermo->GetLatentEnergyMass(thermoIndex, btempArray(k, j));
+  //Real Mbar = pthermo->GetMu(pmb, k, j, is);
+  // Real Tip = (pmb->phydro->w(IPR, k, j, is) * Mbar) /
+  //            (pmb->phydro->w(IDN, k, j, is) * Constants::Rgas);
+  //  FIXME (cmetz) are these signs right?
+  // Real Tf = (cSurf * btempArray(k, j) - accumPrecipAmd * cp * Tip +
+  //            sign * accumPrecipAmd * L) /
+  //           (cSurf - accumPrecipAmd * cp);
+  //
+  // FIXME (cmetz) remove this 0.1 value.
+  // water shouldn't instantly freeze or melt when it hits the surface. it should stay liquid. then if there's enough energy, it freezes. energy should not
+  // go into freezing or thawing what's already there, it should go into freezing the new stuff. then later, handle what was already there
+  // the value of 0.1 is because the temperature kind of stalls a little below 273 now. fix that at some point, make it come up to exactly 273, then make a third
+  // case for what happens at the melting point
+
+  int thermoIndex = 1 + 0 + NVAPOR;
+  Real L = pthermo->GetLatentEnergyMass(thermoIndex, btempArray(k, j));
+
   int sign = 0;
   // new precip will freeze, so LH of precip will be positive into surf
-  if (btempArray(k, j) < meltingPointVapor1) sign = 1;
+  if (btempArray(k, j) < meltingPointVapor1 )
+    sign = 1;
   // new precip will remain liquid, no new LH
   else if (btempArray(k, j) >= meltingPointVapor1)
     sign = 0;
 
-  // energy it would take to freeze all the liquid
-  Real f_latent_precip = sign * (accumPrecipAmd(0, 1) * Lfusion) / dt;
+  Real f_latent_precip = sign * (accumPrecipAmd(0,1) * Lfusion) / dt;
 
-  // FIXME (cmetz) later, insert lines to check if just fin is enough to get the
-  // temp to cross the melting point
+  // Tf = (cSurf * btempArray(k, j) - accumPrecipAmd * cp * Tip +
+  //       sign * accumPrecipAmd * L) /
+  //      (cSurf - accumPrecipAmd * cp);
+
   Real dTs = (fin + f_latent_precip) * (dt / cSurf);
-  Real AmdToMelt = 0;
-  Real deltaFin = 0;
 
-  // heating up, crossing the melting point
-  if (btempArray(k, j) + dTs > meltingPointVapor1 &&
-      btempArray(k, j) < meltingPointVapor1) {
+  //heating up, crossing the melting point
+  if (btempArray(k, j) + dTs > meltingPointVapor1 && btempArray(k, j) < meltingPointVapor1) {
     Real dTGap = meltingPointVapor1 - btempArray(k, j);
     Real fgap = dTGap * cSurf / dt;
     fin -= fgap;
-    dTs = 0;
-    btempArray(k, j) = meltingPointVapor1;
+    //modify dTs?
+    bTempArray(k, j) = meltingPointVapor1;
   }
-  // cooling down, crossing the melting point
-  else if (btempArray(k, j) + dTs < meltingPointVapor1 &&
-           btempArray(k, j) > meltingPointVapor1) {
+  //cooling down, crossing the melting point
+  else if (btempArray(k, j) + dTs < meltingPointVapor1 && btempArray(k, j) > meltingPointVapor1) {
     Real dTGap = btempArray(k, j) - meltingPointVapor1;
     Real fgap = dTGap * cSurf / dt;
-    fin -= fgap;
-    dTs = 0;
-    btempArray(k, j) = meltingPointVapor1;
+    // CHECKME (cmetz) should this be += or -= ? where is the energy going? into melting precip?
+    fin += fgap;
+    //modify dTs?
+    bTempArray(k, j) = meltingPointVapor1;
   }
 
-  // at the freezing point, all fin goes towards latent
-  if (btempArray(k, j) == meltingPointVapor1) {
-    AmdToMelt =
-        fin * dt /
-        Lfusion;  // will be negative if fin is negative, implying freezing
-    amd(0, 1, k, j) += accumPrecipAmd(0, 1);
-    amd(0, 0, k, j) += accumPrecipAmd(0, 0);
-
-    if (amd(0, 1, k, j) + AmdToMelt > 0 && amd(0, 0, k, j) - AmdToMelt > 0) {
-      amd(0, 1, k, j) += AmdToMelt;
-      amd(0, 0, k, j) -= AmdToMelt;
-      std::cout << "AmdToMelt: " << AmdToMelt << std::endl;
-      fin = 0;
-      deltaFin = 0;
+  //???
+  if (btempArray(k, j) == meltingPointVapor1){
+    if (fin - f_latent_precip < 0) {
+      //it would require more latent heat than is available to melt all the ice, so only melt some of it
+      dTs = 0;
     }
-    // during freezing, more liquid would be frozen than exists
-    else if (amd(0, 1, k, j) + AmdToMelt < 0) {
-      amd(0, 0, k, j) += amd(0, 1, k, j);
-      deltaFin = amd(0, 1, k, j) * Lfusion / dt;
-      amd(0, 1, k, j) = 0;
+    else {
+      accumPrecipAmd(0, 0) += accumPrecipAmd(0, 1);
+      accumPrecipAmd(0, 1) = 0;
     }
-    // during melting, more solid would melt than exists
-    else if (amd(0, 0, k, j) - AmdToMelt < 0) {
-      amd(0, 1, k, j) += amd(0, 0, k, j);
-      deltaFin = -amd(0, 0, k, j) * Lfusion / dt;
-      amd(0, 0, k, j) = 0;
-    }
-    fin += deltaFin;
-    dTs = fin * (dt / cSurf);
-  }
-  // the normal case when we are not near the freezing point
-  else if (btempArray(k, j) > meltingPointVapor1) {
-    // new precip will remain liquid
-    amd(0, 1, k, j) += accumPrecipAmd(0, 1);
-    amd(0, 0, k, j) += accumPrecipAmd(0, 0);
-  } else if (btempArray(k, j) < meltingPointVapor1) {
-    // new precip will freeze
-    amd(0, 0, k, j) += accumPrecipAmd(0, 0) + accumPrecipAmd(0, 1);
   }
 
-  btempArray(k, j) += dTs;
-
+  std::cout << "dT evap cooling: " << dT_evapCooling << std::endl;
+  std::cout << "dT latent precip: " << dT_latent_precip << std::endl;
+  Real newTemp = btempArray(k, j) + dTs;
+  Real deltaAmd = 0;
+  // btemp getting hotter, melting some ice
+  if (newTemp > meltingPointVapor1 && btempArray(k, j) < meltingPointVapor1) {
+    deltaAmd = -dTs * cSurf / Lfusion;
+    if (-deltaAmd > amd(0, 0, k, j)) {
+      deltaAmd = -amd(0, 0, k, j);
+      dTs += deltaAmd * Lfusion / cSurf;
+    } else
+      dTs = 0;
+  }
+  // btemp getting colder, freezing some water
+  else if (newTemp < meltingPointVapor1 &&
+           btempArray(k, j) > meltingPointVapor1) {
+    deltaAmd = dTs * cSurf / Lfusion;
+    if (deltaAmd > amd(0, 1, k, j)) {
+      deltaAmd = amd(0, 1, k, j);
+      dTs += deltaAmd * Lfusion / cSurf;
+    } else
+      dTs = 0;
+  } else
+    deltaAmd = 0;
+  std::cout << "deltaAmd: " << deltaAmd << std::endl;
+  amd(0, 0, k, j) += deltaAmd;
+  amd(0, 1, k, j) += -deltaAmd;
   gel(0, 1, k, j) = amd(0, 1, k, j) / rho_l_vapor1;
   gel(0, 0, k, j) = amd(0, 0, k, j) / rho_s_vapor1;
 
+  btempArray(k, j) += dTs;
   return dTs;
 }
 
-AthenaArray<Real> Surface::AccumulatePrecipitates(MeshBlock *pmb, int k, int j,
-                                                  int iSkim) {
+RealArrayX Surface::AccumulatePrecipitates(MeshBlock *pmb, int k, int j, int iSkim) {
   Real precip = 0;
   AthenaArray<Real> accumPrecipAmd;
-  accumPrecipAmd.NewAthenaArray(NVAPOR, 2);
-  for (int v = 0; v < NVAPOR; ++v) {
-    for (int n = 0; n < 2; ++n) accumPrecipAmd(v, n) = 0;
-  }
+  accumPrecipAmd.NewAthenaArray(NVAPOR, 2)
 
-  for (int v = 0; v < NVAPOR; ++v) {
+  for (int v = 0; v < NVAPOR; ++v){
     for (int i = is; i <= iSkim; ++i) {
       precip = 0;
       for (int n = 1; n < 2; ++n) {
@@ -230,7 +238,7 @@ RealArrayX Surface::EvapPrecip(MeshBlock *pmb, int k, int j, Real dt) {
     air.c[n] = pmb->pimpl->pmicro->u(n, k, j, is);
 
   Real Mbar = pthermo->GetMu(pmb, k, j, is);
-  // set air to have T in IDN slot
+  // make sure air has T in IDN slot
   air.w[IDN] = (air.w[IPR] * Mbar) / (air.w[IDN] * Constants::Rgas);
 
   std::vector<Real> AmdEvap(2, 0.);
@@ -240,50 +248,28 @@ RealArrayX Surface::EvapPrecip(MeshBlock *pmb, int k, int j, Real dt) {
     //(cmetz) check this value of CDE, see Hartmann pg 117
     rates = this->CalcSurfEvapRates(air, n, amd(0, 1, k, j), btempArray(k, j),
                                     cSurf, dt, 3e-3, Mbar);
+    // std::cout << "liquid evap rates: " << rates[0] << std::endl;
 
     // evaporate off of liquid amd
-    if (amd(0, 1, k, j) - rates[0] > 0) {
-      amd(0, 1, k, j) += -rates[0];
-      AmdEvap[1] = rates[0];
-    } else {
-      AmdEvap[1] = amd(0, 1, k, j);
-      rates[0] = amd(0, 1, k, j);
-      amd(0, 1, k, j) = 0;
-    }
+    amd(0, 1, k, j) += -rates[0];
+    AmdEvap[1] = rates[0];
 
     // add or subtract from vapor pool
     pmb->phydro->w(n, k, j, is) += rates[0] * (Mbar / pthermo->GetMu(n)) /
                                    (pmb->phydro->w(IDN, k, j, is) * dzPBL);
-    if (pmb->phydro->w(n, k, j, is) < 0) {
-      pmb->phydro->w(n, k, j, is) = 0;
-      std::cout << "liquid evaporation induced negative water in vapor pool"
-                << std::endl;
-    }
+    if (pmb->phydro->w(n, k, j, is) < 0) pmb->phydro->w(n, k, j, is) = 0;
 
-    // solid evaporation
-    //  FIXME (cmetz) later, when we have snow, add this back in
-    // rates = this->CalcSurfEvapRates(air, n, amd(0, 0, k, j), btempArray(k,
-    // j),
-    //                                 cSurf, dt, 3e-3, Mbar);
-
-    // if (amd(0, 0, k, j) - rates[0] > 0) {
-    //   amd(0, 0, k, j) += -rates[0];
-    //   AmdEvap[0] = rates[0];
-    // }
-    // else {
-    //   AmdEvap[0] = amd(0, 0, k, j);
-    //   rates[0] = amd(0, 0, k, j);
-    //   amd(0, 0, k, j) = 0;
-    // }
+    rates = this->CalcSurfEvapRates(air, n, amd(0, 0, k, j), btempArray(k, j),
+                                    cSurf, dt, 3e-3, Mbar);
+    // std::cout << "solid evap rates: " << rates[0] << std::endl;
+    // evaporate off of solid amd
+    amd(0, 0, k, j) += -rates[0];
+    AmdEvap[0] = rates[0];
 
     // add or subtract from vapor pool
-    // pmb->phydro->w(n, k, j, is) += rates[0] * (Mbar / pthermo->GetMu(n)) /
-    //                               (pmb->phydro->w(IDN, k, j, is) * dzPBL);
-    // if (pmb->phydro->w(n, k, j, is) < 0) {
-    //  pmb->phydro->w(n, k, j, is) = 0;
-    //  std::cout << "solid evaporation induced negative water in vapor pool" <<
-    //  std::endl;
-    //}
+    pmb->phydro->w(n, k, j, is) += rates[0] * (Mbar / pthermo->GetMu(n)) /
+                                   (pmb->phydro->w(IDN, k, j, is) * dzPBL);
+    if (pmb->phydro->w(n, k, j, is) < 0) pmb->phydro->w(n, k, j, is) = 0;
   }
 
   gel(0, 1, k, j) = amd(0, 1, k, j) / rho_l_vapor1;

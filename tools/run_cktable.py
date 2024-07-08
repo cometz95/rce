@@ -230,7 +230,7 @@ class HitranCorrelatedKtable(CorrelatedKtable):
         self.temp = data.variables["Temperature"][:]
         self.temp_grid = data.variables["TempGrid"][:]
 
-    def make_cktable(self, wmin: float, wmax: float, nbins: int = 1, npoints: int = 50):
+    def make_cktable(self, wmin: float, wmax: float, nbins: int = 1, npoints: int = 24):
         """
         Make the correlated k-table. This function will call make_ck_axis for each temperature
         grid point.

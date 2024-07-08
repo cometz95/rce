@@ -91,6 +91,7 @@ void RadiationBand::SetSpectralProperties(AirColumn& ac, Real const* x1f,
   // absorption coefficients -> optical thickness
   for (int m = 0; m < nspec; ++m) {
     for (int i = 0; i < ac.size(); ++i) {
+      tau_(m, i) = std::max(0., tau_(m, i));
       if (tau_(m, i) > 1e-6 && ssa_(m, i) > 1e-6) {  // has scattering
         for (int p = 0; p <= npmom; ++p) pmom_(m, i, p) /= ssa_(m, i);
         ssa_(m, i) /= tau_(m, i);
