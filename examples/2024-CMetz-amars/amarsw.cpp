@@ -176,7 +176,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   auto pthermo = Thermodynamics::GetInstance();
 
-  pthermo->GetRd();
   // mesh limits
   Real x1min = pmy_mesh->mesh_size.x1min;
   Real x1max = pmy_mesh->mesh_size.x1max;
