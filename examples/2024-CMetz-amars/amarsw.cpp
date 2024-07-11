@@ -28,8 +28,6 @@
 #include <microphysics/microphysics.hpp>
 
 // snap
-// #include <snap/thermodynamics/calc_surf_evaporation_rates.cpp>
-//#include <snap/thermodynamics/CalcSVPDeriv.cpp>
 #include <snap/thermodynamics/thermodynamics.hpp>
 
 // harp
@@ -37,7 +35,6 @@
 
 // surface
 #include <surface/surface.hpp>
-// #include <surface/calc_surf_evaporation_rates.cpp>
 
 // special includes
 #include <special/amars_enroll_vapor_functions_v1.hpp>
@@ -179,6 +176,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   auto pthermo = Thermodynamics::GetInstance();
 
+  pthermo->GetRd();
   // mesh limits
   Real x1min = pmy_mesh->mesh_size.x1min;
   Real x1max = pmy_mesh->mesh_size.x1max;
@@ -239,7 +237,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
       // half a grid to cell center
       pthermo->Extrapolate(&air, pcoord->dx1f(is) / 2., "pseudo", grav);
-
       int i = is;
       for (; i <= ie; ++i) {
         if (air.w[IDN] < Tmin) break;

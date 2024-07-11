@@ -30,7 +30,7 @@
 #include <exo3/cubed_sphere.hpp>
 #include <exo3/cubed_sphere_utility.hpp>
 
-//surface
+// surface
 #include <surface/surface.hpp>
 
 // harp
@@ -143,7 +143,6 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
                                             int j) {
   auto &wmin = pmy_band_->wrange_.first;
   auto &wmax = pmy_band_->wrange_.second;
-
   Real dist_au = 1.;
   Direction ray = pmb->pimpl->prad->GetRayInput(0);
   auto planet = pmb->pimpl->planet;
@@ -151,7 +150,6 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
   if (planet && pmy_band_->TestFlag(RadiationFlags::TimeDependent)) {
     Real time = pmb->pmy_mesh->time;
     Real lat, lon;
-
     CubedSphereUtility::get_latlon_on_sphere(&lat, &lon, pmb, k, j, pmb->is);
 
     ray = planet->ParentZenithAngle(time, lat, lon);
@@ -169,7 +167,6 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
       dist_au = pmy_band_->GetPar<Real>("dist_au");
     }
   }
-
   if (ds_.flag.ibcnd != 0) {
     throw ValueError("RTSolverDisort::CalRadtranFlux", "ibcnd", ds_.flag.ibcnd,
                      0);
@@ -182,7 +179,6 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
 
   // pack spectral properties
   pmy_band_->packSpectralProperties();
-
   ds_.bc.umu0 = ray.mu > 1.E-3 ? ray.mu : 1.E-3;
   ds_.bc.phi0 = ray.phi;
 
@@ -203,7 +199,6 @@ void RadiationBand::RTSolverDisort::Prepare(MeshBlock const *pmb, int k,
     }
     ds_.bc.fbeam /= dist_au * dist_au;
   }
-
   pmb->pcoord->Face1Area(k, j, pmb->is, pmb->ie + 1, farea_);
   pmb->pcoord->CellVolume(k, j, pmb->is, pmb->ie, vol_);
 

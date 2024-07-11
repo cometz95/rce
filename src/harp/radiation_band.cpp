@@ -155,7 +155,7 @@ void RadiationBand::Resize(int nc1, int nc2, int nc3, int nstr,
   int nlayers = GetNumLayers();
   int npmom = GetNumPhaseMoments();
   pexv->send_buffer[0].resize(temf_.size());
-  pexv->send_buffer[1].resize(nlayers * (npmom + 3));
+  pexv->send_buffer[1].resize(nlayers * pgrid_->spec.size() * (npmom + 3));
 
   pexv->Regroup(pmb, X1DIR);
   int nblocks = pexv->GetGroupSize();
