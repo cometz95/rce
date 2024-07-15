@@ -159,7 +159,7 @@ Real Surface::ChangeTempFromForcing(MeshBlock *pmb, int k, int j, Real dt,
     if (amd(0, 1, k, j) + AmdToMelt > 0 && amd(0, 0, k, j) - AmdToMelt > 0) {
       amd(0, 1, k, j) += AmdToMelt;
       amd(0, 0, k, j) -= AmdToMelt;
-      std::cout << "AmdToMelt: " << AmdToMelt << std::endl;
+      //std::cout << "AmdToMelt: " << AmdToMelt << std::endl;
       fin = 0;
       deltaFin = 0;
     }
