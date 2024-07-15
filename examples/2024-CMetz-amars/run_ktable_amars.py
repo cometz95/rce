@@ -55,4 +55,8 @@ if __name__ == "__main__":
 
     pool = Pool(max_threads)
     bnames = list(map(str, config["bands"]))
-    pool.map(run_ktable_one_band, bnames)
+
+    for b in bnames:
+        run_ktable_one_band(b)
+
+    #pool.map(run_ktable_one_band, bnames)

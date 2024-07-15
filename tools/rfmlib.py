@@ -10,6 +10,7 @@ def create_rfm_driver(
     tem_grid: Tuple[int, float, float],
     absorbers: List[str],
     hitran_file: str,
+    cia_file: str
 ) -> Dict[str, str]:
     """
     Create a RFM driver file.
@@ -40,6 +41,7 @@ def create_rfm_driver(
             ("*DIM", "PLV \n    %d %.4f %.4f" % tem_grid),
             ("*TAB", "tab_*.txt"),
             ("*HIT", hitran_file),
+            #("*CIA", cia_file),
             ("*END", ""),
         ]
     )
@@ -135,6 +137,8 @@ def run_rfm(rundir: str=".") -> None:
             [f"{pwd}/rfm.release"], stdout=file, stderr=subprocess.STDOUT
         )
         process.communicate()
+
+    os.chdir(pwd)
 
     #for line in iter(process.stdout.readline, b""):
         # decode the byte string and end='' to avoid double newlines

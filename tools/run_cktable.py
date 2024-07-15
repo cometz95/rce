@@ -277,4 +277,8 @@ if __name__ == "__main__":
     config = load_configure(opacity_config)
     pool = Pool(max_threads)
     bnames = list(map(str, config["bands"]))
-    pool.map(run_cktable_one_band, bnames)
+
+    for b in bnames:
+        run_cktable_one_band(b)
+
+    #pool.map(run_cktable_one_band, bnames)
