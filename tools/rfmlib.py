@@ -138,7 +138,6 @@ def run_rfm(rundir: str=".") -> None:
         )
         process.communicate()
 
-    os.chdir(pwd)
 
     #for line in iter(process.stdout.readline, b""):
         # decode the byte string and end='' to avoid double newlines
@@ -264,3 +263,4 @@ def write_ktable(
     pwd = os.getcwd()
     shutil.move(f"{fname}.nc", f"{basedir}/{fname}.nc")
     print(f"# {fname}.nc written.")
+    os.chdir(basedir)

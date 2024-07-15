@@ -64,7 +64,7 @@ ox3_bc      = periodic    # Outer-X3 boundary condition flag
 
 <meshblock>
 nx1         = 128
-nx2         = 32
+nx2         = 16
 #nx2 = 1
 nx3         = 1
 
