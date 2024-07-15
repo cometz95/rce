@@ -95,14 +95,9 @@ set(CANOE_LIBRARY_${buildu}
   "scm_${buildl}"
   "diagnostics_${buildl}"
   "forcing_${buildl}"
-<<<<<<< HEAD
-  $<$<BOOL:${MINICHEM}>:minichem::minichem++>
+  "surface_${buildl}"
   #"modules_${buildl}"
   ${YAML_CPP_LIBRARIES}
-=======
-  "surface_${buildl}"
-  "yaml-cpp"
->>>>>>> e762c56 (add surface (cometz))
   ${CPPDISORT_LIBRARY_${buildu}}
   ${PYTHON_LIBRARY_RELEASE}
   ${NETCDF_LIBRARIES}
@@ -115,6 +110,7 @@ set(CANOE_LIBRARY_${buildu}
   ${TORCH_CPU_LIBRARY}
   ${C10_LIBRARY}
   ${EXTRA_LIBS}
+  $<$<BOOL:${MINICHEM}>:minichem::minichem++>
   CACHE INTERNAL "canoe library")
 
 set(CANOE_INCLUDE_DIR
